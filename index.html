@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LunarBit</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    background: #0a0e1a;
+    color: #e2e8f0;
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    padding: 16px;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #7c3aed, #00e5ff);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .logo-text {
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #a78bfa, #00e5ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #00e676;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #00e676;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: #151e2e;
+    border: 1px solid #1e2d45;
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-size: 20px;
+    font-weight: 700;
+    color: #00e5ff;
+    font-family: monospace;
+  }
+
+  .stat-lbl {
+    font-size: 10px;
+    color: #64748b;
+    margin-top: 2px;
+    text-transform: uppercase;
+  }
+
+  .section-title {
+    font-size: 13px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  .opp-card {
+    background: #151e2e;
+    border: 1px solid #1e2d45;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 8px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .opp-card.hot {
+    border-color: rgba(0,230,118,0.3);
+    background: linear-gradient(135deg, rgba(0,230,118,0.05), #151e2e);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .opp-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .opp-pair {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .opp-spread {
+    font-size: 20px;
+    font-weight: 700;
+    color: #00e676;
+    font-family: monospace;
+  }
+
+  .opp-route {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .ex-badge {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: monospace;
+  }
+
+  .ex-BN { background: #1a1200; color: #f0b90b; }
+  .ex-BB { background: #0d1a2e; color: #4d9fff; }
+  .ex-OK { background: #0a1a14; color: #00e676; }
+  .ex-KC { background: #1a0e00; color: #ff9800; }
+  .ex-MX { background: #1a001a; color: #ff69b4; }
+  .ex-GT { background: #001a1a; color: #00ffff; }
+  .ex-BG { background: #001a0d; color: #00ff7f; }
+  .ex-BX { background: #1a1a00; color: #ffff00; }
+  .ex-DX { background: #0d0d1a; color: #9b59b6; }
+
+  .arrow { color: #64748b; }
+
+  .opp-prices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #1e2d45;
+  }
+
+  .price-item .plbl {
+    font-size: 10px;
+    color: #64748b;
+  }
+
+  .price-item .pval {
+    font-size: 12px;
+    font-family: monospace;
+    margin-top: 2px;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #64748b;
+  }
+
+  .empty-icon { font-size: 40px; margin-bottom: 10px; }
+
+  .btn-open {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, #7c3aed, #00e5ff);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: #64748b;
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 2px solid #1e2d45;
+    border-top-color: #00e5ff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">🌙</div>
+    <div class="logo-text">LunarBit</div>
+  </div>
+  <div class="status">
+    <div class="dot"></div>
+    Live
+  </div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-val" id="statOpps">—</div>
+    <div class="stat-lbl">Сигналов</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val" id="statBest">—</div>
+    <div class="stat-lbl">Лучший</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val" id="statExchanges">11</div>
+    <div class="stat-lbl">Бирж</div>
+  </div>
+</div>
+
+<div class="section-title">⚡ Арбитражные возможности</div>
+
+<div id="oppsList">
+  <div class="loading">
+    <div class="spinner"></div>
+    Загружаем данные...
+  </div>
+</div>
+
+<div style="height: 70px"></div>
+
+<button class="btn-open" onclick="openBot()">
+  🤖 Открыть LunarBit Bot
+</button>
+
+<script>
+const tg = window.Telegram.WebApp;
+tg.expand();
+tg.setHeaderColor('#0a0e1a');
+tg.setBackgroundColor('#0a0e1a');
+
+const PAIRS = ["BTC","ETH","BNB","SOL","XRP","DOGE","ADA","AVAX","LINK","DOT"];
+let prices = {};
+
+const EX_CODE = {
+  "Binance": "BN", "Bybit": "BB", "OKX": "OK",
+  "KuCoin": "KC", "MEXC": "MX", "Gate.io": "GT",
+  "Bitget": "BG", "BingX": "BX"
+};
+
+async function fetchBinance() {
+  try {
+    const r = await fetch('https://api.binance.com/api/v3/ticker/price');
+    const data = await r.json();
+    data.forEach(({symbol, price}) => {
+      const sym = symbol.replace('USDT','');
+      if (PAIRS.includes(sym)) {
+        if (!prices[sym]) prices[sym] = {};
+        prices[sym]['Binance'] = parseFloat(price);
+      }
+    });
+  } catch(e) {}
+}
+
+async function fetchBybit() {
+  try {
+    const r = await fetch('https://api.bybit.com/v5/market/tickers?category=spot');
+    const data = await r.json();
+    (data.result?.list || []).forEach(item => {
+      const sym = item.symbol.replace('USDT','');
+      if (PAIRS.includes(sym)) {
+        if (!prices[sym]) prices[sym] = {};
+        prices[sym]['Bybit'] = parseFloat(item.lastPrice);
+      }
+    });
+  } catch(e) {}
+}
+
+async function fetchOKX() {
+  try {
+    const r = await fetch('https://www.okx.com/api/v5/market/tickers?instType=SPOT');
+    const data = await r.json();
+    (data.data || []).forEach(item => {
+      const sym = item.instId.replace('-USDT','');
+      if (PAIRS.includes(sym)) {
+        if (!prices[sym]) prices[sym] = {};
+        prices[sym]['OKX'] = parseFloat(item.last);
+      }
+    });
+  } catch(e) {}
+}
+
+function getOpportunities() {
+  const results = [];
+  for (const sym of PAIRS) {
+    const p = prices[sym];
+    if (!p) continue;
+    const exs = Object.entries(p);
+    for (let i = 0; i < exs.length; i++) {
+      for (let j = i+1; j < exs.length; j++) {
+        const [ex1, p1] = exs[i];
+        const [ex2, p2] = exs[j];
+        if (p2 <= p1) continue;
+        const spread = (p2-p1)/p1*100;
+        if (spread >= 0.1) {
+          results.push({spread, sym, buyEx: ex1, sellEx: ex2, buyP: p1, sellP: p2});
+        }
+      }
+    }
+  }
+  results.sort((a,b) => b.spread - a.spread);
+  return results;
+}
+
+function formatPrice(p) {
+  if (!p) return '—';
+  if (p >= 1000) return p.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
+  if (p >= 1) return p.toFixed(4);
+  return p.toFixed(6);
+}
+
+function getExCode(ex) {
+  return EX_CODE[ex] || ex.substring(0,2).toUpperCase();
+}
+
+function render() {
+  const opps = getOpportunities();
+  const list = document.getElementById('oppsList');
+
+  document.getElementById('statOpps').textContent = opps.length;
+  document.getElementById('statBest').textContent = opps.length ? `+${opps[0].spread.toFixed(2)}%` : '—';
+
+  if (!opps.length) {
+    list.innerHTML = `<div class="empty">
+      <div class="empty-icon">🔍</div>
+      <p>Возможностей пока нет</p>
+      <p style="font-size:12px;margin-top:6px">Снизь минимальный спред в настройках бота</p>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = opps.slice(0,15).map(o => {
+    const hot = o.spread >= 0.8;
+    const buyCode = getExCode(o.buyEx);
+    const sellCode = getExCode(o.sellEx);
+    return `<div class="opp-card${hot?' hot':''}">
+      <div class="opp-top">
+        <div class="opp-pair">${o.sym}/USDT ${hot?'🔥':''}</div>
+        <div class="opp-spread">+${o.spread.toFixed(2)}%</div>
+      </div>
+      <div class="opp-route">
+        <span class="ex-badge ex-${buyCode}">${o.buyEx}</span>
+        <span class="arrow">→</span>
+        <span class="ex-badge ex-${sellCode}">${o.sellEx}</span>
+      </div>
+      <div class="opp-prices">
+        <div class="price-item">
+          <div class="plbl">Купить @ ${o.buyEx}</div>
+          <div class="pval">$${formatPrice(o.buyP)}</div>
+        </div>
+        <div class="price-item">
+          <div class="plbl">Продать @ ${o.sellEx}</div>
+          <div class="pval">$${formatPrice(o.sellP)}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function scan() {
+  await Promise.all([fetchBinance(), fetchBybit(), fetchOKX()]);
+  render();
+}
+
+function openBot() {
+  tg.openTelegramLink('https://t.me/LunarBit_Bot');
+}
+
+scan();
+setInterval(scan, 15000);
+</script>
+</body>
+</html>
