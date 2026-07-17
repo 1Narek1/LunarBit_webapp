@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>LunarBit</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --card: #151e2e;
+  --border: #1e2d45;
+  --accent: #00e5ff;
+  --green: #00e676;
+  --red: #ff1744;
+  --yellow: #ffea00;
+  --purple: #7c3aed;
+  --text: #e2e8f0;
+  --muted: #64748b;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* NAV */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding: 8px 0 12px;
+  z-index: 100;
+}
+
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 10px;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color .15s;
+}
+
+.nav-btn.active { color: var(--accent); }
+.nav-icon { font-size: 22px; }
+
+/* PAGES */
+.page { display: none; padding: 16px; padding-bottom: 80px; }
+.page.active { display: block; }
+
+/* HEADER */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #a78bfa, #00e5ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--green);
+  background: rgba(0,230,118,0.1);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,100% { opacity:1; }
+  50% { opacity:0.3; }
+}
+
+/* STATS */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.stat-val {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: monospace;
+}
+
+.stat-lbl {
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 2px;
+  text-transform: uppercase;
+}
+
+/* FILTER */
+.filter-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-bottom: 12px;
+}
+
+.filter-row::-webkit-scrollbar { display: none; }
+
+.chip {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.chip.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0,229,255,0.06);
+}
+
+/* CARDS */
+.opp-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.opp-card.hot { border-color: rgba(0,230,118,0.3); }
+
+.opp-card.locked {
+  opacity: 0.6;
+  filter: blur(0px);
+}
+
+.lock-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10,14,26,0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.lock-icon { font-size: 24px; margin-bottom: 4px; }
+.lock-text { font-size: 12px; color: var(--accent); font-weight: 600; }
+
+.opp-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.opp-pair { font-size: 15px; font-weight: 700; }
+.opp-spread { font-size: 18px; font-weight: 700; color: var(--green); font-family: monospace; }
+
+.opp-route {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.ex-badge {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.opp-prices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.price-item .plbl { font-size: 10px; color: var(--muted); }
+.price-item .pval { font-size: 12px; font-family: monospace; margin-top: 1px; }
+
+/* CALCULATOR */
+.calc-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.calc-label { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+
+.calc-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--text);
+  font-size: 18px;
+  font-family: monospace;
+  outline: none;
+}
+
+.calc-input:focus { border-color: var(--accent); }
+
+.calc-result {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 8px;
+}
+
+.calc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.calc-row:last-child { border-bottom: none; }
+.calc-row .label { color: var(--muted); }
+.calc-row .value { font-family: monospace; font-weight: 600; }
+.calc-row .value.green { color: var(--green); }
+.calc-row .value.yellow { color: var(--yellow); }
+
+/* EDUCATION */
+.edu-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.edu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.edu-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.edu-icon { font-size: 24px; }
+.edu-arrow { color: var(--muted); transition: transform .2s; }
+.edu-card.open .edu-arrow { transform: rotate(90deg); }
+
+.edu-body {
+  display: none;
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #94a3b8;
+}
+
+.edu-card.open .edu-body { display: block; }
+
+.edu-step {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.edu-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--purple);
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* PROFILE */
+.profile-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 10px;
+}
+
+.profile-plan {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.plan-badge {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.plan-free { background: rgba(100,116,139,0.2); color: var(--muted); }
+.plan-basic { background: rgba(251,191,36,0.2); color: #fbbf24; }
+.plan-pro { background: rgba(239,68,68,0.2); color: #ef4444; }
+
+.profile-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.profile-row:last-child { border-bottom: none; }
+.profile-row .plbl { color: var(--muted); }
+.profile-row .pval { font-family: monospace; font-weight: 600; }
+
+.btn-primary {
+  width: 100%;
+  background: linear-gradient(135deg, var(--purple), var(--accent));
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.ref-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--accent);
+  word-break: break-all;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+/* LANG SELECTOR */
+.lang-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lang-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  width: 280px;
+}
+
+.lang-title {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.lang-btn {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  color: var(--text);
+  font-size: 15px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lang-btn:hover { border-color: var(--accent); }
+
+/* LOADING */
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.spinner {
+  width: 28px; height: 28px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  margin: 0 auto 12px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+
+<!-- Language Selector -->
+<div class="lang-overlay" id="langOverlay">
+  <div class="lang-modal">
+    <div class="lang-title">🌍 Choose Language</div>
+    <button class="lang-btn" onclick="setLang('ru')">🇷🇺 Русский</button>
+    <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
+    <button class="lang-btn" onclick="setLang('am')">🇦🇲 Հայերեն</button>
+  </div>
+</div>
+
+<!-- SPREADS PAGE -->
+<div class="page active" id="pageSpreads">
+  <div class="page-header">
+    <div class="page-title">🌙 LunarBit</div>
+    <div class="live-badge"><div class="dot"></div>Live</div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-val" id="statTotal">—</div>
+      <div class="stat-lbl" id="lblSignals">Signals</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="statBest">—</div>
+      <div class="stat-lbl" id="lblBest">Best</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="statPlan">—</div>
+      <div class="stat-lbl" id="lblPlan">Plan</div>
+    </div>
+  </div>
+
+  <div class="filter-row">
+    <button class="chip active" data-filter="all" onclick="setFilter('all',this)" id="chipAll">All</button>
+    <button class="chip" data-filter="cex" onclick="setFilter('cex',this)" id="chipCex">CEX</button>
+    <button class="chip" data-filter="dex" onclick="setFilter('dex',this)" id="chipDex">DEX 🔒</button>
+  </div>
+
+  <div id="spreadsList">
+    <div class="loading"><div class="spinner"></div><span id="lblLoading">Loading...</span></div>
+  </div>
+</div>
+
+<!-- CALCULATOR PAGE -->
+<div class="page" id="pageCalc">
+  <div class="page-header">
+    <div class="page-title" id="lblCalcTitle">Calculator</div>
+  </div>
+
+  <div class="calc-card">
+    <div class="calc-label" id="lblCapital">Your capital (USDT)</div>
+    <input class="calc-input" type="number" id="capitalInput" value="1000" oninput="calcUpdate()">
+  </div>
+
+  <div id="calcResults">
+    <div class="empty" id="lblCalcEmpty">Enter capital to see results</div>
+  </div>
+</div>
+
+<!-- EDUCATION PAGE -->
+<div class="page" id="pageEdu">
+  <div class="page-header">
+    <div class="page-title" id="lblEduTitle">Education</div>
+  </div>
+  <div id="eduContent"></div>
+</div>
+
+<!-- PROFILE PAGE -->
+<div class="page" id="pageProfile">
+  <div class="page-header">
+    <div class="page-title" id="lblProfileTitle">Profile</div>
+  </div>
+
+  <div class="profile-card">
+    <div class="profile-plan">
+      <div id="lblYourPlan">Your plan</div>
+      <div class="plan-badge plan-free" id="planBadge">Free</div>
+    </div>
+    <div class="profile-row">
+      <div class="plbl" id="lblExpires">Expires</div>
+      <div class="pval" id="profileExpires">—</div>
+    </div>
+    <div class="profile-row">
+      <div class="plbl" id="lblScans">Scans today</div>
+      <div class="pval" id="profileScans">—</div>
+    </div>
+    <div class="profile-row">
+      <div class="plbl" id="lblRefs">Friends invited</div>
+      <div class="pval" id="profileRefs">0</div>
+    </div>
+  </div>
+
+  <div class="profile-card">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:8px" id="lblRefLink">Your referral link</div>
+    <div class="ref-box" id="refLink" onclick="copyRef()">Loading...</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center" id="lblCopyHint">Tap to copy</div>
+  </div>
+
+  <button class="btn-primary" onclick="openBot()" id="btnOpenBot">🤖 Open LunarBit Bot</button>
+  <button class="btn-primary" style="margin-top:8px;background:linear-gradient(135deg,#f59e0b,#ef4444)" onclick="openPremium()" id="btnPremium">⭐ Upgrade to Premium</button>
+  <button class="btn-primary" style="margin-top:8px;background:var(--surface);border:1px solid var(--border);color:var(--text)" onclick="showLangOverlay()" id="btnLang">🌍 Change Language</button>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="navSpreads" onclick="switchPage('Spreads')">
+    <span class="nav-icon">📊</span>
+    <span id="navLblSpreads">Spreads</span>
+  </button>
+  <button class="nav-btn" id="navCalc" onclick="switchPage('Calc')">
+    <span class="nav-icon">🧮</span>
+    <span id="navLblCalc">Calculator</span>
+  </button>
+  <button class="nav-btn" id="navEdu" onclick="switchPage('Edu')">
+    <span class="nav-icon">📚</span>
+    <span id="navLblEdu">Education</span>
+  </button>
+  <button class="nav-btn" id="navProfile" onclick="switchPage('Profile')">
+    <span class="nav-icon">👤</span>
+    <span id="navLblProfile">Profile</span>
+  </button>
+</nav>
+
+<script>
+const tg = window.Telegram.WebApp;
+tg.expand();
+tg.setHeaderColor('#0a0e1a');
+tg.setBackgroundColor('#0a0e1a');
+
+const API = 'https://lunarbit-api.onrender.com';
+const BOT = 'https://t.me/LunarBit_Bot';
+
+let lang = localStorage.getItem('lb_lang') || null;
+let userPlan = 'free';
+let userData = {};
+let spreadsData = [];
+let activeFilter = 'all';
+let userId = null;
+
+// ── TRANSLATIONS ──────────────────────────────────────────
+const T = {
+  ru: {
+    signals: 'Сигналов', best: 'Лучший', plan: 'План',
+    loading: 'Загружаем данные...', all: 'Все', cex: 'CEX',
+    calcTitle: '🧮 Калькулятор', capital: 'Ваш капитал (USDT)',
+    calcEmpty: 'Введите капитал для расчёта',
+    eduTitle: '📚 Обучение', profileTitle: '👤 Профиль',
+    yourPlan: 'Ваш план', expires: 'Истекает',
+    scans: 'Сканов сегодня', refs: 'Приглашено друзей',
+    refLink: 'Ваша реферальная ссылка', copyHint: 'Нажмите чтобы скопировать',
+    openBot: '🤖 Открыть LunarBit Bot', premium: '⭐ Перейти на Premium',
+    changeLang: '🌍 Сменить язык',
+    navSpreads: 'Спреды', navCalc: 'Калькулятор', navEdu: 'Обучение', navProfile: 'Профиль',
+    buy: 'Купить', sell: 'Продать', spread: 'Спред',
+    profit: 'Прибыль', fees: 'Комиссии', net: 'Чистая прибыль',
+    lockedBasic: '⭐ Доступно в Basic', lockedPro: '🔥 Доступно в Pro',
+    noOpps: 'Возможностей пока нет', copied: 'Скопировано!',
+    planFree: '🆓 Free', planBasic: '⭐ Basic', planPro: '🔥 Pro',
+  },
+  en: {
+    signals: 'Signals', best: 'Best', plan: 'Plan',
+    loading: 'Loading data...', all: 'All', cex: 'CEX',
+    calcTitle: '🧮 Calculator', capital: 'Your capital (USDT)',
+    calcEmpty: 'Enter capital to see results',
+    eduTitle: '📚 Education', profileTitle: '👤 Profile',
+    yourPlan: 'Your plan', expires: 'Expires',
+    scans: 'Scans today', refs: 'Friends invited',
+    refLink: 'Your referral link', copyHint: 'Tap to copy',
+    openBot: '🤖 Open LunarBit Bot', premium: '⭐ Upgrade to Premium',
+    changeLang: '🌍 Change Language',
+    navSpreads: 'Spreads', navCalc: 'Calculator', navEdu: 'Education', navProfile: 'Profile',
+    buy: 'Buy', sell: 'Sell', spread: 'Spread',
+    profit: 'Profit', fees: 'Fees', net: 'Net profit',
+    lockedBasic: '⭐ Available in Basic', lockedPro: '🔥 Available in Pro',
+    noOpps: 'No opportunities yet', copied: 'Copied!',
+    planFree: '🆓 Free', planBasic: '⭐ Basic', planPro: '🔥 Pro',
+  },
+  am: {
+    signals: 'Ազդանշան', best: 'Լավագույն', plan: 'Պլան',
+    loading: 'Բեռնում ենք...', all: 'Բոլոր', cex: 'CEX',
+    calcTitle: '🧮 Հաշվիչ', capital: 'Ձեր կապիտալ (USDT)',
+    calcEmpty: 'Մուտքագրեք կապիտալ',
+    eduTitle: '📚 Կրթություն', profileTitle: '👤 Պրոֆիլ',
+    yourPlan: 'Ձեր պլանը', expires: 'Լրանում է',
+    scans: 'Սկաններ այսօր', refs: 'Հրավիրված ընկերներ',
+    refLink: 'Ձեր ռեֆերալային հղումը', copyHint: 'Սեղմել պատճենելու համար',
+    openBot: '🤖 Բացել LunarBit Bot', premium: '⭐ Անցնել Premium-ի',
+    changeLang: '🌍 Փոխել լեզուն',
+    navSpreads: 'Սփրեդ', navCalc: 'Հաշվիչ', navEdu: 'Կրթություն', navProfile: 'Պրոֆիլ',
+    buy: 'Գնել', sell: 'Վաճառել', spread: 'Սփրեդ',
+    profit: 'Շահույթ', fees: 'Կոմիսիոն', net: 'Մաքուր շահույթ',
+    lockedBasic: '⭐ Հասանելի Basic-ում', lockedPro: '🔥 Հասանելի Pro-ում',
+    noOpps: 'Հնարավորություններ չկան', copied: 'Պատճենված է!',
+    planFree: '🆓 Free', planBasic: '⭐ Basic', planPro: '🔥 Pro',
+  }
+};
+
+function t(key) {
+  return (T[lang] || T['en'])[key] || key;
+}
+
+// ── EDUCATION CONTENT ─────────────────────────────────────
+const EDU = {
+  ru: [
+    {
+      icon: '💡', title: 'Что такое арбитраж?',
+      body: `<p>Арбитраж — это покупка актива там где он дешевле и продажа там где он дороже.</p>
+      <br><p><strong>Пример:</strong></p>
+      <p>BTC на Binance: $67,234</p>
+      <p>BTC на Bybit: $67,891</p>
+      <p>Разница: $657 (0.97%)</p>
+      <br><p>Купив на Binance и продав на Bybit — вы получаете прибыль без рыночного риска.</p>`
+    },
+    {
+      icon: '📋', title: 'Как исполнить сделку?',
+      body: `<div class="edu-step"><div class="edu-step-num">1</div><div>Найдите возможность через /scan или /monitor</div></div>
+      <div class="edu-step"><div class="edu-step-num">2</div><div>Убедитесь что спред больше комиссий (0.2%+)</div></div>
+      <div class="edu-step"><div class="edu-step-num">3</div><div>Купите на бирже где цена ниже</div></div>
+      <div class="edu-step"><div class="edu-step-num">4</div><div>Продайте на бирже где цена выше</div></div>
+      <div class="edu-step"><div class="edu-step-num">5</div><div>Переведите средства обратно для следующей сделки</div></div>`
+    },
+    {
+      icon: '⚠️', title: 'Риски арбитража',
+      body: `<p><strong>Изменение цены</strong> — пока переводите деньги, цена может измениться.</p>
+      <br><p><strong>Комиссии</strong> — торговая комиссия ~0.1% на каждой бирже. Итого ~0.2% на сделку.</p>
+      <br><p><strong>Время перевода</strong> — перевод между биржами занимает 1-30 минут.</p>
+      <br><p><strong>Совет:</strong> Работайте только со спредами >0.5% чтобы покрыть все расходы.</p>`
+    },
+    {
+      icon: '🔄', title: 'CEX vs DEX арбитраж',
+      body: `<p><strong>CEX (Centralized):</strong> Binance, Bybit, OKX</p>
+      <p>Спреды: 0.1-0.5% | Быстро | Много конкурентов</p>
+      <br><p><strong>DEX (Decentralized):</strong> Uniswap, Raydium</p>
+      <p>Спреды: 0.5-3%+ | Медленнее | Меньше конкуренции</p>
+      <br><p>DEX требует крипто-кошелёк и оплату gas fees. Доступно в плане Pro 🔥</p>`
+    },
+    {
+      icon: '💰', title: 'Сколько нужно капитала?',
+      body: `<p>Минимально: <strong>$500</strong> — можно попробовать</p>
+      <p>Комфортно: <strong>$2,000-5,000</strong> — реальная прибыль</p>
+      <p>Профессионально: <strong>$10,000+</strong> — серьёзный доход</p>
+      <br><p>При спреде 0.5% и капитале $1,000:</p>
+      <p>Прибыль за сделку: ~$3-4 (после комиссий)</p>
+      <p>При 5 сделках в день: ~$15-20/день</p>`
+    },
+  ],
+  en: [
+    {
+      icon: '💡', title: 'What is Arbitrage?',
+      body: `<p>Arbitrage is buying an asset where it's cheaper and selling where it's more expensive.</p>
+      <br><p><strong>Example:</strong></p>
+      <p>BTC on Binance: $67,234</p>
+      <p>BTC on Bybit: $67,891</p>
+      <p>Difference: $657 (0.97%)</p>
+      <br><p>Buy on Binance, sell on Bybit — profit without market risk.</p>`
+    },
+    {
+      icon: '📋', title: 'How to Execute a Trade?',
+      body: `<div class="edu-step"><div class="edu-step-num">1</div><div>Find opportunity via /scan or /monitor</div></div>
+      <div class="edu-step"><div class="edu-step-num">2</div><div>Make sure spread > fees (0.2%+)</div></div>
+      <div class="edu-step"><div class="edu-step-num">3</div><div>Buy on the exchange with lower price</div></div>
+      <div class="edu-step"><div class="edu-step-num">4</div><div>Sell on the exchange with higher price</div></div>
+      <div class="edu-step"><div class="edu-step-num">5</div><div>Transfer funds back for next trade</div></div>`
+    },
+    {
+      icon: '⚠️', title: 'Arbitrage Risks',
+      body: `<p><strong>Price change</strong> — prices may change while transferring funds.</p>
+      <br><p><strong>Fees</strong> — trading fee ~0.1% per exchange. Total ~0.2% per trade.</p>
+      <br><p><strong>Transfer time</strong> — transfers between exchanges take 1-30 minutes.</p>
+      <br><p><strong>Tip:</strong> Only trade spreads >0.5% to cover all costs.</p>`
+    },
+    {
+      icon: '🔄', title: 'CEX vs DEX Arbitrage',
+      body: `<p><strong>CEX (Centralized):</strong> Binance, Bybit, OKX</p>
+      <p>Spreads: 0.1-0.5% | Fast | Many competitors</p>
+      <br><p><strong>DEX (Decentralized):</strong> Uniswap, Raydium</p>
+      <p>Spreads: 0.5-3%+ | Slower | Less competition</p>
+      <br><p>DEX requires a crypto wallet and gas fees. Available in Pro plan 🔥</p>`
+    },
+    {
+      icon: '💰', title: 'How Much Capital Do You Need?',
+      body: `<p>Minimum: <strong>$500</strong> — can try</p>
+      <p>Comfortable: <strong>$2,000-5,000</strong> — real profit</p>
+      <p>Professional: <strong>$10,000+</strong> — serious income</p>
+      <br><p>With 0.5% spread and $1,000 capital:</p>
+      <p>Profit per trade: ~$3-4 (after fees)</p>
+      <p>5 trades per day: ~$15-20/day</p>`
+    },
+  ],
+  am: [
+    {
+      icon: '💡', title: 'Ի՞նչ է արբիտրաժը?',
+      body: `<p>Արբիտրաժը ակտիվ գնելն է ավելի էժան տեղ և վաճառելն ավելի թանկ տեղ։</p>
+      <br><p><strong>Օրինակ:</strong></p>
+      <p>BTC Binance-ում: $67,234</p>
+      <p>BTC Bybit-ում: $67,891</p>
+      <p>Տարբերություն: $657 (0.97%)</p>
+      <br><p>Գնիր Binance-ից, վաճառիր Bybit-ում — շահույթ առանց ռիսկի։</p>`
+    },
+    {
+      icon: '📋', title: 'Ինչպե՞ս կատարել գործարք?',
+      body: `<div class="edu-step"><div class="edu-step-num">1</div><div>Գտիր հնարավորություն /scan կամ /monitor-ով</div></div>
+      <div class="edu-step"><div class="edu-step-num">2</div><div>Համոզվիր որ սփրեդը > կոմիսիոններ (0.2%+)</div></div>
+      <div class="edu-step"><div class="edu-step-num">3</div><div>Գնիր ավելի ցածր գնով բորսայից</div></div>
+      <div class="edu-step"><div class="edu-step-num">4</div><div>Վաճառիր ավելի բարձր գնով բորսայում</div></div>
+      <div class="edu-step"><div class="edu-step-num">5</div><div>Փոխանցիր միջոցները հաջորդ գործարքի համար</div></div>`
+    },
+    {
+      icon: '⚠️', title: 'Արբիտրաժի ռիսկեր',
+      body: `<p><strong>Գնի փոփոխություն</strong> — փոխանցման ժամանակ գինը կարող է փոխվել։</p>
+      <br><p><strong>Կոմիսիոններ</strong> — ~0.1% յուրաքանչյուր բորսայում։ Ընդամենը ~0.2%։</p>
+      <br><p><strong>Փոխանցման ժամանակ</strong> — 1-30 րոպե բորսաների միջև։</p>
+      <br><p><strong>Խորհուրդ:</strong> Աշխատիր միայն >0.5% սփրեդով։</p>`
+    },
+    {
+      icon: '🔄', title: 'CEX vs DEX արբիտրաժ',
+      body: `<p><strong>CEX:</strong> Binance, Bybit, OKX</p>
+      <p>Սփրեդ: 0.1-0.5% | Արագ | Շատ մրցակիցներ</p>
+      <br><p><strong>DEX:</strong> Uniswap, Raydium</p>
+      <p>Սփրեդ: 0.5-3%+ | Դանդաղ | Քիչ մրցակցություն</p>
+      <br><p>DEX-ը պահանջում է կրիպտո դրամապանակ։ Հասանելի Pro-ում 🔥</p>`
+    },
+    {
+      icon: '💰', title: 'Որքա՞ն կապիտալ է պետք?',
+      body: `<p>Նվազագույն: <strong>$500</strong></p>
+      <p>Հարմար: <strong>$2,000-5,000</strong></p>
+      <p>Պրոֆեսիոնալ: <strong>$10,000+</strong></p>
+      <br><p>0.5% սփրեդով և $1,000-ով:</p>
+      <p>Շահույթ մեկ գործարքից: ~$3-4</p>
+      <p>5 գործարք/օր: ~$15-20/օր</p>`
+    },
+  ]
+};
+
+// ── INIT ──────────────────────────────────────────────────
+window.onload = async () => {
+  // Get Telegram user
+  if (tg.initDataUnsafe?.user) {
+    userId = tg.initDataUnsafe.user.id;
+  }
+
+  // Check saved lang
+  if (!lang) {
+    document.getElementById('langOverlay').style.display = 'flex';
+  } else {
+    init();
+  }
+};
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('lb_lang', l);
+  document.getElementById('langOverlay').style.display = 'none';
+  init();
+}
+
+function showLangOverlay() {
+  document.getElementById('langOverlay').style.display = 'flex';
+}
+
+async function init() {
+  applyTranslations();
+  renderEdu();
+  await loadUser();
+  await loadSpreads();
+  calcUpdate();
+  setInterval(loadSpreads, 30000);
+}
+
+function applyTranslations() {
+  document.getElementById('lblSignals').textContent = t('signals');
+  document.getElementById('lblBest').textContent = t('best');
+  document.getElementById('lblPlan').textContent = t('plan');
+  document.getElementById('lblLoading').textContent = t('loading');
+  document.getElementById('chipAll').textContent = t('all');
+  document.getElementById('chipCex').textContent = t('cex');
+  document.getElementById('lblCalcTitle').textContent = t('calcTitle');
+  document.getElementById('lblCapital').textContent = t('capital');
+  document.getElementById('lblCalcEmpty').textContent = t('calcEmpty');
+  document.getElementById('lblEduTitle').textContent = t('eduTitle');
+  document.getElementById('lblProfileTitle').textContent = t('profileTitle');
+  document.getElementById('lblYourPlan').textContent = t('yourPlan');
+  document.getElementById('lblExpires').textContent = t('expires');
+  document.getElementById('lblScans').textContent = t('scans');
+  document.getElementById('lblRefs').textContent = t('refs');
+  document.getElementById('lblRefLink').textContent = t('refLink');
+  document.getElementById('lblCopyHint').textContent = t('copyHint');
+  document.getElementById('btnOpenBot').textContent = t('openBot');
+  document.getElementById('btnPremium').textContent = t('premium');
+  document.getElementById('btnLang').textContent = t('changeLang');
+  document.getElementById('navLblSpreads').textContent = t('navSpreads');
+  document.getElementById('navLblCalc').textContent = t('navCalc');
+  document.getElementById('navLblEdu').textContent = t('navEdu');
+  document.getElementById('navLblProfile').textContent = t('navProfile');
+}
+
+// ── USER ──────────────────────────────────────────────────
+async function loadUser() {
+  if (!userId) return;
+  try {
+    const r = await fetch(`${API}/api/user/${userId}`);
+    userData = await r.json();
+    userPlan = userData.plan || 'free';
+
+    const planNames = {free: t('planFree'), basic: t('planBasic'), pro: t('planPro')};
+    document.getElementById('statPlan').textContent = planNames[userPlan] || 'Free';
+
+    const badge = document.getElementById('planBadge');
+    badge.textContent = planNames[userPlan] || 'Free';
+    badge.className = `plan-badge plan-${userPlan}`;
+
+    document.getElementById('profileExpires').textContent = userData.expires || '—';
+    document.getElementById('profileScans').textContent = userData.scan_count || 0;
+    document.getElementById('profileRefs').textContent = userData.ref_count || 0;
+    document.getElementById('refLink').textContent = `https://t.me/LunarBit_Bot?start=REF${userId}`;
+  } catch(e) {}
+}
+
+// ── SPREADS ───────────────────────────────────────────────
+async function loadSpreads() {
+  try {
+    const url = userId ? `${API}/api/spreads?user_id=${userId}` : `${API}/api/spreads`;
+    const r = await fetch(url);
+    const data = await r.json();
+    spreadsData = data.spreads || [];
+    document.getElementById('statTotal').textContent = spreadsData.filter(s => !s.locked).length;
+    const best = spreadsData.find(s => !s.locked);
+    document.getElementById('statBest').textContent = best ? `+${best.spread.toFixed(2)}%` : '—';
+    renderSpreads();
+    calcUpdate();
+  } catch(e) {
+    document.getElementById('spreadsList').innerHTML = `<div class="empty">${t('noOpps')}</div>`;
+  }
+}
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderSpreads();
+}
+
+function renderSpreads() {
+  const list = document.getElementById('spreadsList');
+  let data = spreadsData;
+
+  if (activeFilter === 'cex') data = data.filter(s => !s.is_dex);
+  if (activeFilter === 'dex') data = data.filter(s => s.is_dex);
+
+  if (!data.length) {
+    list.innerHTML = `<div class="empty">${t('noOpps')}</div>`;
+    return;
+  }
+
+  list.innerHTML = data.slice(0,30).map(s => {
+    const hot = s.spread >= 0.8;
+    const lockText = s.lock_reason === 'pro' ? t('lockedPro') : t('lockedBasic');
+
+    return `<div class="opp-card${hot?' hot':''}${s.locked?' locked':''}">
+      <div class="opp-top">
+        <div class="opp-pair">${s.sym}/USDT${hot?' 🔥':''}</div>
+        <div class="opp-spread">+${s.spread.toFixed(2)}%</div>
+      </div>
+      <div class="opp-route">
+        <span class="ex-badge" style="background:#1e2d45;color:#00e5ff">${s.buy_ex}</span>
+        <span style="color:#64748b">→</span>
+        <span class="ex-badge" style="background:#1e2d45;color:#00e676">${s.sell_ex}</span>
+      </div>
+      <div class="opp-prices">
+        <div class="price-item">
+          <div class="plbl">${t('buy')}</div>
+          <div class="pval">$${formatP(s.buy_p)}</div>
+        </div>
+        <div class="price-item">
+          <div class="plbl">${t('sell')}</div>
+          <div class="pval">$${formatP(s.sell_p)}</div>
+        </div>
+      </div>
+      ${s.locked ? `<div class="lock-overlay" onclick="openPremium()">
+        <div class="lock-icon">🔒</div>
+        <div class="lock-text">${lockText}</div>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── CALCULATOR ────────────────────────────────────────────
+function calcUpdate() {
+  const capital = parseFloat(document.getElementById('capitalInput').value) || 0;
+  const container = document.getElementById('calcResults');
+
+  if (!capital || !spreadsData.length) {
+    container.innerHTML = `<div class="empty">${t('calcEmpty')}</div>`;
+    return;
+  }
+
+  const unlocked = spreadsData.filter(s => !s.locked).slice(0, 5);
+
+  if (!unlocked.length) {
+    container.innerHTML = `<div class="empty">${t('noOpps')}</div>`;
+    return;
+  }
+
+  container.innerHTML = unlocked.map(s => {
+    const gross = s.spread / 100 * capital;
+    const fees = capital * 0.002;
+    const net = gross - fees;
+    const netPct = s.spread - 0.2;
+
+    return `<div class="calc-result">
+      <div style="font-weight:700;margin-bottom:8px">${s.sym}/USDT</div>
+      <div class="calc-row">
+        <div class="label">${t('spread')}</div>
+        <div class="value">+${s.spread.toFixed(2)}%</div>
+      </div>
+      <div class="calc-row">
+        <div class="label">${t('profit')}</div>
+        <div class="value yellow">$${gross.toFixed(2)}</div>
+      </div>
+      <div class="calc-row">
+        <div class="label">${t('fees')}</div>
+        <div class="value" style="color:var(--red)">-$${fees.toFixed(2)}</div>
+      </div>
+      <div class="calc-row">
+        <div class="label">${t('net')}</div>
+        <div class="value ${net>0?'green':''}">${net>0?'+':''}$${net.toFixed(2)} (${netPct.toFixed(2)}%)</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── EDUCATION ─────────────────────────────────────────────
+function renderEdu() {
+  const content = EDU[lang] || EDU['en'];
+  document.getElementById('eduContent').innerHTML = content.map((item, i) => `
+    <div class="edu-card" onclick="toggleEdu(${i})" id="edu${i}">
+      <div class="edu-header">
+        <div class="edu-title">
+          <span class="edu-icon">${item.icon}</span>
+          ${item.title}
+        </div>
+        <span class="edu-arrow">›</span>
+      </div>
+      <div class="edu-body">${item.body}</div>
+    </div>
+  `).join('');
+}
+
+function toggleEdu(i) {
+  const card = document.getElementById(`edu${i}`);
+  card.classList.toggle('open');
+}
+
+// ── NAVIGATION ────────────────────────────────────────────
+function switchPage(name) {
+  ['Spreads','Calc','Edu','Profile'].forEach(p => {
+    document.getElementById(`page${p}`).classList.remove('active');
+    document.getElementById(`nav${p}`).classList.remove('active');
+  });
+  document.getElementById(`page${name}`).classList.add('active');
+  document.getElementById(`nav${name}`).classList.add('active');
+}
+
+// ── HELPERS ───────────────────────────────────────────────
+function formatP(p) {
+  if (!p) return '—';
+  if (p >= 1000) return p.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2});
+  if (p >= 1) return p.toFixed(4);
+  return p.toFixed(6);
+}
+
+function openBot() { tg.openTelegramLink(BOT); }
+function openPremium() { tg.openTelegramLink(`${BOT}?start=premium`); }
+
+function copyRef() {
+  const text = document.getElementById('refLink').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    tg.showAlert(t('copied'));
+  });
+}
+</script>
+</body>
+</html>
+v3
