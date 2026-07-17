@@ -76,16 +76,13 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-.live-badge {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  color: var(--green);
-  background: rgba(0,230,118,0.1);
-  padding: 4px 10px;
-  border-radius: 20px;
-}
+<div class="page-header">
+    <div class="page-title">🌙 LunarBit</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button onclick="refreshSpreads()" style="background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);color:#00e5ff;border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer">🔄</button>
+      <div class="live-badge"><div class="dot"></div>Live</div>
+    </div>
+  </div>
 
 .dot {
   width: 6px; height: 6px;
@@ -2020,6 +2017,11 @@ async function loadSpreads() {
   } catch(e) {
     document.getElementById('spreadsList').innerHTML = `<div class="empty">${t('noOpps')}</div>`;
   }
+}
+
+async function refreshSpreads() {
+  document.getElementById('spreadsList').innerHTML = `<div class="loading"><div class="spinner"></div><span>${t('loading')}</span></div>`;
+  await loadSpreads();
 }
 
 function setFilter(f, btn) {
