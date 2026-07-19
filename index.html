@@ -7,575 +7,112 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-
 :root {
-  --bg: #0a0e1a;
-  --surface: #111827;
-  --card: #151e2e;
-  --border: #1e2d45;
-  --accent: #00e5ff;
-  --green: #00e676;
-  --red: #ff1744;
-  --yellow: #ffea00;
-  --purple: #7c3aed;
-  --text: #e2e8f0;
-  --muted: #64748b;
+  --bg: #0a0e1a; --surface: #111827; --card: #151e2e;
+  --border: #1e2d45; --accent: #00e5ff; --green: #00e676;
+  --red: #ff1744; --yellow: #ffea00; --purple: #7c3aed;
+  --text: #e2e8f0; --muted: #64748b;
 }
-
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Segoe UI', sans-serif;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-.bottom-nav {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  display: flex;
-  padding: 8px 0 12px;
-  z-index: 100;
-}
-
-.nav-btn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-size: 10px;
-  cursor: pointer;
-  padding: 4px 0;
-  transition: color .15s;
-}
-
-.nav-btn.active { color: var(--accent); }
-.nav-icon { font-size: 22px; }
-
-.page { display: none; padding: 16px; padding-bottom: 80px; }
-.page.active { display: block; }
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.page-title {
-  font-size: 20px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #a78bfa, #00e5ff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-<div class="page-header">
-    <div class="page-title">🌙 LunarBit</div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <button onclick="refreshSpreads()" style="background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);color:#00e5ff;border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer">🔄</button>
-      <div class="live-badge"><div class="dot"></div>Live</div>
-    </div>
-  </div>
-
-.dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--green);
-  animation: pulse 2s infinite;
-}
-
+body { background:var(--bg); color:var(--text); font-family:'Segoe UI',sans-serif; min-height:100vh; overflow-x:hidden; }
+.bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:1px solid var(--border); display:flex; padding:8px 0 12px; z-index:100; }
+.nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; background:none; border:none; color:var(--muted); font-size:10px; cursor:pointer; padding:4px 0; }
+.nav-btn.active { color:var(--accent); }
+.nav-icon { font-size:22px; }
+.page { display:none; padding:16px; padding-bottom:80px; }
+.page.active { display:block; }
+.page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.page-title { font-size:20px; font-weight:700; background:linear-gradient(135deg,#a78bfa,#00e5ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.live-badge { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--green); background:rgba(0,230,118,0.1); padding:4px 10px; border-radius:20px; }
+.dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.stat-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px 8px;
-  text-align: center;
-}
-
-.stat-val {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--accent);
-  font-family: monospace;
-}
-
-.stat-lbl {
-  font-size: 9px;
-  color: var(--muted);
-  margin-top: 2px;
-  text-transform: uppercase;
-}
-
-.filter-row {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  margin-bottom: 12px;
-}
-
-.filter-row::-webkit-scrollbar { display: none; }
-
-.chip {
-  flex-shrink: 0;
-  padding: 5px 12px;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--muted);
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.chip.active {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: rgba(0,229,255,0.06);
-}
-
-.opp-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 8px;
-  position: relative;
-  overflow: hidden;
-}
-
-.opp-card.hot { border-color: rgba(0,230,118,0.3); }
-
-.lock-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(10,14,26,0.85);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  cursor: pointer;
-}
-
-.lock-icon { font-size: 28px; margin-bottom: 6px; }
-.lock-text { font-size: 13px; color: var(--accent); font-weight: 600; }
-
-.opp-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.opp-pair { font-size: 15px; font-weight: 700; }
-.opp-spread { font-size: 18px; font-weight: 700; color: var(--green); font-family: monospace; }
-
-.opp-route {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.ex-badge {
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: monospace;
-  background: #1e2d45;
-  color: #00e5ff;
-}
-
-.opp-prices {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
-}
-
-.price-item .plbl { font-size: 10px; color: var(--muted); }
-.price-item .pval { font-size: 12px; font-family: monospace; margin-top: 1px; }
-
-.calc-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 12px;
-}
-
-.calc-label { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
-
-.calc-input {
-  width: 100%;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px;
-  color: var(--text);
-  font-size: 18px;
-  font-family: monospace;
-  outline: none;
-}
-
-.calc-input:focus { border-color: var(--accent); }
-
-.calc-result {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 8px;
-}
-
-.calc-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-}
-
-.calc-row:last-child { border-bottom: none; }
-.calc-row .label { color: var(--muted); }
-.calc-row .value { font-family: monospace; font-weight: 600; }
-.calc-row .value.green { color: var(--green); }
-.calc-row .value.yellow { color: var(--yellow); }
-
-/* EDUCATION */
-.edu-module {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  margin-bottom: 12px;
-  overflow: hidden;
-}
-
-.edu-module-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px;
-  cursor: pointer;
-}
-
-.edu-module-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.edu-module-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  flex-shrink: 0;
-}
-
-.edu-module-title {
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.edu-module-subtitle {
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 2px;
-}
-
-.edu-module-arrow {
-  color: var(--muted);
-  font-size: 18px;
-  transition: transform .2s;
-  flex-shrink: 0;
-}
-
-.edu-module.open .edu-module-arrow { transform: rotate(90deg); }
-
-.edu-module-body {
-  display: none;
-  padding: 0 16px 16px;
-}
-
-.edu-module.open .edu-module-body { display: block; }
-
-.edu-lesson {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  margin-bottom: 8px;
-  overflow: hidden;
-}
-
-.edu-lesson-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 14px;
-  cursor: pointer;
-}
-
-.edu-lesson-title {
-  font-size: 13px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.edu-lesson-arrow {
-  color: var(--muted);
-  font-size: 14px;
-  transition: transform .2s;
-}
-
-.edu-lesson.open .edu-lesson-arrow { transform: rotate(90deg); }
-
-.edu-lesson-body {
-  display: none;
-  padding: 0 14px 14px;
-  font-size: 13px;
-  line-height: 1.8;
-  color: #94a3b8;
-}
-
-.edu-lesson.open .edu-lesson-body { display: block; }
-
-.edu-lesson-body p { margin-bottom: 10px; }
-.edu-lesson-body strong { color: var(--text); }
-
-.edu-step {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
-  align-items: flex-start;
-}
-
-.edu-step-num {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: var(--purple);
-  color: white;
-  font-size: 12px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.edu-step-text { flex: 1; }
-
-.edu-tip {
-  background: rgba(0,229,255,0.08);
-  border: 1px solid rgba(0,229,255,0.2);
-  border-radius: 8px;
-  padding: 10px 12px;
-  margin: 10px 0;
-  font-size: 12px;
-  color: var(--accent);
-}
-
-.edu-warning {
-  background: rgba(255,23,68,0.08);
-  border: 1px solid rgba(255,23,68,0.2);
-  border-radius: 8px;
-  padding: 10px 12px;
-  margin: 10px 0;
-  font-size: 12px;
-  color: #ff6b6b;
-}
-
-.edu-example {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px;
-  margin: 10px 0;
-  font-family: monospace;
-  font-size: 12px;
-}
-
-.edu-progress {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 16px;
-}
-
-.edu-progress-bar {
-  flex: 1;
-  height: 4px;
-  background: var(--border);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.edu-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--purple), var(--accent));
-  border-radius: 2px;
-  transition: width .3s;
-}
-
-.edu-progress-text {
-  font-size: 11px;
-  color: var(--muted);
-  white-space: nowrap;
-}
-
-.profile-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 10px;
-}
-
-.profile-plan {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.plan-badge {
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.plan-free { background: rgba(100,116,139,0.2); color: var(--muted); }
-.plan-basic { background: rgba(251,191,36,0.2); color: #fbbf24; }
-.plan-pro { background: rgba(239,68,68,0.2); color: #ef4444; }
-
-.profile-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-}
-
-.profile-row:last-child { border-bottom: none; }
-.profile-row .plbl { color: var(--muted); }
-.profile-row .pval { font-family: monospace; font-weight: 600; }
-
-.btn-primary {
-  width: 100%;
-  background: linear-gradient(135deg, var(--purple), var(--accent));
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 14px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-.ref-box {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-family: monospace;
-  font-size: 11px;
-  color: var(--accent);
-  word-break: break-all;
-  margin-top: 8px;
-  cursor: pointer;
-}
-
-.lang-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.8);
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.lang-modal {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 24px;
-  width: 280px;
-}
-
-.lang-title {
-  text-align: center;
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 20px;
-}
-
-.lang-btn {
-  width: 100%;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px;
-  color: var(--text);
-  font-size: 15px;
-  cursor: pointer;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.loading {
-  text-align: center;
-  padding: 40px;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.spinner {
-  width: 28px; height: 28px;
-  border: 2px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin .8s linear infinite;
-  margin: 0 auto 12px;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-.empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+.refresh-btn { background:rgba(0,229,255,0.1); border:1px solid rgba(0,229,255,0.3); color:var(--accent); border-radius:20px; padding:4px 12px; font-size:13px; cursor:pointer; }
+.stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
+.stat-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px 8px; text-align:center; }
+.stat-val { font-size:18px; font-weight:700; color:var(--accent); font-family:monospace; }
+.stat-lbl { font-size:9px; color:var(--muted); margin-top:2px; text-transform:uppercase; }
+.filter-row { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; margin-bottom:12px; }
+.filter-row::-webkit-scrollbar { display:none; }
+.chip { flex-shrink:0; padding:5px 12px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--muted); font-size:12px; cursor:pointer; }
+.chip.active { border-color:var(--accent); color:var(--accent); background:rgba(0,229,255,0.06); }
+.opp-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:8px; position:relative; overflow:hidden; }
+.opp-card.hot { border-color:rgba(0,230,118,0.3); }
+.lock-overlay { position:absolute; inset:0; background:rgba(10,14,26,0.85); display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:12px; cursor:pointer; }
+.lock-icon { font-size:28px; margin-bottom:6px; }
+.lock-text { font-size:13px; color:var(--accent); font-weight:600; }
+.opp-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.opp-pair { font-size:15px; font-weight:700; }
+.opp-spread { font-size:18px; font-weight:700; color:var(--green); font-family:monospace; }
+.opp-route { display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+.ex-badge { padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700; font-family:monospace; background:#1e2d45; color:#00e5ff; }
+.opp-prices { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding-top:8px; border-top:1px solid var(--border); }
+.price-item .plbl { font-size:10px; color:var(--muted); }
+.price-item .pval { font-size:12px; font-family:monospace; margin-top:1px; }
+.calc-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; }
+.calc-label { font-size:13px; color:var(--muted); margin-bottom:8px; }
+.calc-input { width:100%; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px; color:var(--text); font-size:18px; font-family:monospace; outline:none; }
+.calc-input:focus { border-color:var(--accent); }
+.calc-result { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:8px; }
+.calc-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px; }
+.calc-row:last-child { border-bottom:none; }
+.calc-row .label { color:var(--muted); }
+.calc-row .value { font-family:monospace; font-weight:600; }
+.calc-row .value.green { color:var(--green); }
+.calc-row .value.yellow { color:var(--yellow); }
+.edu-module { background:var(--card); border:1px solid var(--border); border-radius:14px; margin-bottom:12px; overflow:hidden; }
+.edu-module-header { display:flex; align-items:center; justify-content:space-between; padding:16px; cursor:pointer; }
+.edu-module-left { display:flex; align-items:center; gap:12px; }
+.edu-module-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+.edu-module-title { font-size:15px; font-weight:700; }
+.edu-module-subtitle { font-size:11px; color:var(--muted); margin-top:2px; }
+.edu-module-arrow { color:var(--muted); font-size:18px; transition:transform .2s; flex-shrink:0; }
+.edu-module.open .edu-module-arrow { transform:rotate(90deg); }
+.edu-module-body { display:none; padding:0 16px 16px; }
+.edu-module.open .edu-module-body { display:block; }
+.edu-lesson { background:var(--surface); border:1px solid var(--border); border-radius:10px; margin-bottom:8px; overflow:hidden; }
+.edu-lesson-header { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; cursor:pointer; }
+.edu-lesson-title { font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px; }
+.edu-lesson-arrow { color:var(--muted); font-size:14px; transition:transform .2s; }
+.edu-lesson.open .edu-lesson-arrow { transform:rotate(90deg); }
+.edu-lesson-body { display:none; padding:0 14px 14px; font-size:13px; line-height:1.8; color:#94a3b8; }
+.edu-lesson.open .edu-lesson-body { display:block; }
+.edu-lesson-body p { margin-bottom:10px; }
+.edu-lesson-body strong { color:var(--text); }
+.edu-step { display:flex; gap:10px; margin-bottom:12px; align-items:flex-start; }
+.edu-step-num { width:26px; height:26px; border-radius:50%; background:var(--purple); color:white; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+.edu-step-text { flex:1; }
+.edu-tip { background:rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.2); border-radius:8px; padding:10px 12px; margin:10px 0; font-size:12px; color:var(--accent); }
+.edu-warning { background:rgba(255,23,68,0.08); border:1px solid rgba(255,23,68,0.2); border-radius:8px; padding:10px 12px; margin:10px 0; font-size:12px; color:#ff6b6b; }
+.edu-example { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px; margin:10px 0; font-family:monospace; font-size:12px; white-space:pre-wrap; }
+.edu-progress { display:flex; align-items:center; gap:6px; margin-bottom:16px; }
+.edu-progress-bar { flex:1; height:4px; background:var(--border); border-radius:2px; overflow:hidden; }
+.edu-progress-fill { height:100%; background:linear-gradient(90deg,var(--purple),var(--accent)); border-radius:2px; transition:width .3s; }
+.edu-progress-text { font-size:11px; color:var(--muted); white-space:nowrap; }
+.profile-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:10px; }
+.profile-plan { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.plan-badge { padding:6px 16px; border-radius:20px; font-size:14px; font-weight:700; }
+.plan-free { background:rgba(100,116,139,0.2); color:var(--muted); }
+.plan-basic { background:rgba(251,191,36,0.2); color:#fbbf24; }
+.plan-pro { background:rgba(239,68,68,0.2); color:#ef4444; }
+.profile-row { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:13px; }
+.profile-row:last-child { border-bottom:none; }
+.profile-row .plbl { color:var(--muted); }
+.profile-row .pval { font-family:monospace; font-weight:600; }
+.btn-primary { width:100%; background:linear-gradient(135deg,var(--purple),var(--accent)); color:white; border:none; border-radius:12px; padding:14px; font-size:15px; font-weight:700; cursor:pointer; margin-top:10px; }
+.ref-box { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 12px; font-family:monospace; font-size:11px; color:var(--accent); word-break:break-all; margin-top:8px; cursor:pointer; }
+.lang-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:200; display:flex; align-items:center; justify-content:center; }
+.lang-modal { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; width:280px; }
+.lang-title { text-align:center; font-size:18px; font-weight:700; margin-bottom:20px; }
+.lang-btn { width:100%; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; color:var(--text); font-size:15px; cursor:pointer; margin-bottom:8px; display:flex; align-items:center; gap:10px; }
+.loading { text-align:center; padding:40px; color:var(--muted); font-size:13px; }
+.spinner { width:28px; height:28px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 12px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.empty { text-align:center; padding:40px 20px; color:var(--muted); }
+.no-data { text-align:center; padding:20px; color:var(--muted); font-size:13px; }
 </style>
 </head>
 <body>
 
-<div class="lang-overlay" id="langOverlay">
+<div class="lang-overlay" id="langOverlay" style="display:none">
   <div class="lang-modal">
     <div class="lang-title">🌍 Choose Language</div>
     <button class="lang-btn" onclick="setLang('ru')">🇷🇺 Русский</button>
@@ -584,11 +121,13 @@ body {
   </div>
 </div>
 
-<!-- SPREADS -->
 <div class="page active" id="pageSpreads">
   <div class="page-header">
     <div class="page-title">🌙 LunarBit</div>
-    <div class="live-badge"><div class="dot"></div>Live</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="refresh-btn" onclick="refreshSpreads()">🔄</button>
+      <div class="live-badge"><div class="dot"></div>Live</div>
+    </div>
   </div>
   <div class="stats-row">
     <div class="stat-card"><div class="stat-val" id="statTotal">—</div><div class="stat-lbl" id="lblSignals">Signals</div></div>
@@ -603,7 +142,6 @@ body {
   <div id="spreadsList"><div class="loading"><div class="spinner"></div><span id="lblLoading">Loading...</span></div></div>
 </div>
 
-<!-- CALCULATOR -->
 <div class="page" id="pageCalc">
   <div class="page-header"><div class="page-title" id="lblCalcTitle">Calculator</div></div>
   <div class="calc-card">
@@ -613,17 +151,15 @@ body {
   <div id="calcResults"><div class="empty" id="lblCalcEmpty">Enter capital</div></div>
 </div>
 
-<!-- EDUCATION -->
 <div class="page" id="pageEdu">
   <div class="page-header"><div class="page-title" id="lblEduTitle">Education</div></div>
   <div class="edu-progress">
     <div class="edu-progress-bar"><div class="edu-progress-fill" id="eduProgressFill" style="width:0%"></div></div>
-    <div class="edu-progress-text" id="eduProgressText">0/6</div>
+    <div class="edu-progress-text" id="eduProgressText">0/0</div>
   </div>
   <div id="eduContent"></div>
 </div>
 
-<!-- PROFILE -->
 <div class="page" id="pageProfile">
   <div class="page-header"><div class="page-title" id="lblProfileTitle">Profile</div></div>
   <div class="profile-card">
@@ -637,7 +173,7 @@ body {
   </div>
   <div class="profile-card">
     <div style="font-size:13px;color:var(--muted);margin-bottom:8px" id="lblRefLink">Referral link</div>
-    <div class="ref-box" id="refLink" onclick="copyRef()">Loading...</div>
+    <div class="ref-box" id="refLink" onclick="copyRef()">—</div>
     <div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center" id="lblCopyHint">Tap to copy</div>
   </div>
   <button class="btn-primary" onclick="openBot()" id="btnOpenBot">🤖 Open Bot</button>
@@ -659,15 +195,22 @@ tg.setHeaderColor('#0a0e1a');
 tg.setBackgroundColor('#0a0e1a');
 
 const API = 'https://lunarbit-api.onrender.com';
-const BOT = 'https://t.me/LunarBit_Bot';
+const BOT_USERNAME = 'LunarBit_Bot';
+const BOT = `https://t.me/${BOT_USERNAME}`;
 
-let lang = localStorage.getItem('lb_lang') || null;
+// ── ЯЗЫК — сохраняем в CloudStorage Telegram ─────────────
+let lang = null;
 let userPlan = 'free';
 let userData = {};
 let spreadsData = [];
 let activeFilter = 'all';
 let userId = null;
 let openedLessons = new Set();
+
+// Получаем user из Telegram
+if (tg.initDataUnsafe?.user) {
+  userId = tg.initDataUnsafe.user.id;
+}
 
 const T = {
   ru: {
@@ -687,7 +230,8 @@ const T = {
     lockedBasic:'⭐ Доступно в Basic', lockedPro:'🔥 Доступно в Pro',
     noOpps:'Возможностей пока нет', copied:'Скопировано!',
     planFree:'🆓 Free', planBasic:'⭐ Basic', planPro:'🔥 Pro',
-    progress:'пройдено',
+    progress:'пройдено', noProfile:'Открой бот чтобы загрузить профиль',
+    refresh:'Обновить',
   },
   en: {
     signals:'Signals', best:'Best', plan:'Plan',
@@ -706,7 +250,8 @@ const T = {
     lockedBasic:'⭐ Available in Basic', lockedPro:'🔥 Available in Pro',
     noOpps:'No opportunities yet', copied:'Copied!',
     planFree:'🆓 Free', planBasic:'⭐ Basic', planPro:'🔥 Pro',
-    progress:'completed',
+    progress:'completed', noProfile:'Open bot to load profile',
+    refresh:'Refresh',
   },
   am: {
     signals:'Ազդանշան', best:'Լավագույն', plan:'Պլան',
@@ -725,1227 +270,120 @@ const T = {
     lockedBasic:'⭐ Հասանելի Basic-ում', lockedPro:'🔥 Հասանելի Pro-ում',
     noOpps:'Հնարավորություններ չկան', copied:'Պատճենված է!',
     planFree:'🆓 Free', planBasic:'⭐ Basic', planPro:'🔥 Pro',
-    progress:'ավարտված',
+    progress:'ավարտված', noProfile:'Բացիր բոտը պրոֆիլը բեռնելու համար',
+    refresh:'Թարմացնել',
   }
 };
 
 function t(key) { return (T[lang]||T['en'])[key]||key; }
 
-// ── EDUCATION CONTENT ─────────────────────────────────────
+// ── EDU CONTENT (сокращённая версия) ─────────────────────
 const EDU = {
   ru: [
-    {
-      icon:'💡', color:'#7c3aed',
-      title:'Основы арбитража',
-      subtitle:'Что это и как работает',
-      lessons: [
-        {
-          icon:'📖', title:'Что такое криптоарбитраж?',
-          body:`
-            <p>Арбитраж — это одна из старейших торговых стратегий в мире. Суть проста: <strong>купить дешевле в одном месте и продать дороже в другом</strong>.</p>
-
-            <div class="edu-example">
-Обычный рынок:
-Яблоки на рынке А → 50 руб/кг
-Яблоки на рынке Б → 70 руб/кг
-Прибыль → 20 руб/кг (40%)
-            </div>
-
-            <p>В криптовалюте то же самое, но вместо рынков — биржи, а вместо яблок — Bitcoin, Ethereum и другие монеты.</p>
-
-            <div class="edu-example">
-Криптоарбитраж:
-BTC на Binance  → $67,234
-BTC на Bybit    → $67,891
-Разница         → $657 (0.97%)
-            </div>
-
-            <p>Главное преимущество арбитража перед обычной торговлей — <strong>отсутствие рыночного риска</strong>. Вам не важно куда пойдёт цена, вы зарабатываете на разнице между биржами прямо сейчас.</p>
-
-            <div class="edu-tip">💡 Арбитраж существует потому что рынок не идеален — разные биржи имеют разных пользователей, разный спрос и предложение.</div>
-          `
-        },
-        {
-          icon:'🔍', title:'Почему цены разные на биржах?',
-          body:`
-            <p>Многие новички удивляются: если Bitcoin один, почему цена разная? Вот причины:</p>
-
-            <div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text"><strong>Разная ликвидность</strong> — на Binance торгуют миллионы людей, на маленькой бирже — тысячи. Большой объём = более точная цена.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text"><strong>Разная география</strong> — азиатские биржи могут реагировать на новости быстрее, чем европейские.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text"><strong>Разные маркетмейкеры</strong> — каждая биржа имеет своих поставщиков ликвидности с разными ценами.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text"><strong>Задержка арбитражеров</strong> — пока боты выравнивают цены, образуется временная разница.</div></div>
-
-            <div class="edu-tip">💡 Чем меньше биржа и менее популярна монета — тем больше ценовые расхождения.</div>
-
-            <div class="edu-warning">⚠️ Спреды существуют секунды или минуты. Нужно действовать быстро!</div>
-          `
-        },
-        {
-          icon:'📊', title:'Виды арбитража',
-          body:`
-            <p>Существует несколько видов арбитража. Каждый имеет свои плюсы и минусы:</p>
-
-            <p><strong>1. Межбиржевой (CEX-CEX)</strong></p>
-            <p>Покупка на одной централизованной бирже, продажа на другой.</p>
-            <div class="edu-example">Binance → Bybit → OKX → KuCoin</div>
-            <p>✅ Просто | ✅ Быстро | ❌ Маленький спред (0.1-0.5%)</p>
-
-            <br><p><strong>2. CEX-DEX арбитраж</strong></p>
-            <p>Покупка на централизованной бирже, продажа на децентрализованной (или наоборот).</p>
-            <div class="edu-example">Binance → Uniswap (Ethereum)
-Binance → Raydium (Solana)</div>
-            <p>✅ Больший спред (0.5-3%) | ❌ Нужен кошелёк | ❌ Gas fees</p>
-
-            <br><p><strong>3. Треугольный арбитраж</strong></p>
-            <p>Торговля тремя парами на одной бирже.</p>
-            <div class="edu-example">BTC → ETH → USDT → BTC</div>
-            <p>✅ Нет переводов между биржами | ❌ Сложнее рассчитать</p>
-
-            <br><p><strong>4. Фандинг арбитраж</strong></p>
-            <p>Получение выплат за ставку финансирования фьючерсов.</p>
-            <p>✅ Стабильный доход | ✅ Минимальный риск | ❌ Нужен капитал</p>
-
-            <div class="edu-tip">💡 LunarBit поддерживает CEX-CEX и CEX-DEX арбитраж. Фандинг — в разработке!</div>
-          `
-        }
-      ]
-    },
-    {
-      icon:'📊', color:'#0891b2',
-      title:'Анализ и выбор возможностей',
-      subtitle:'Как читать данные и выбирать сделки',
-      lessons: [
-        {
-          icon:'📈', title:'Как читать спред?',
-          body:`
-            <p>Спред — это разница в цене между двумя биржами, выраженная в процентах.</p>
-
-            <div class="edu-example">
-Формула:
-Спред = (Цена продажи - Цена покупки) / Цена покупки × 100%
-
-Пример:
-Покупка ETH на Binance:  $3,450
-Продажа ETH на Bybit:    $3,484
-Спред = (3484 - 3450) / 3450 × 100% = 0.99%
-            </div>
-
-            <p><strong>Какой спред считается хорошим?</strong></p>
-
-            <div class="edu-step"><div class="edu-step-num">❌</div><div class="edu-step-text"><strong>0.0 - 0.2%</strong> — убыточно. Комиссии съедят всё.</div></div>
-            <div class="edu-step"><div class="edu-step-num">⚠️</div><div class="edu-step-text"><strong>0.2 - 0.4%</strong> — минимальная прибыль. Риск не оправдан.</div></div>
-            <div class="edu-step"><div class="edu-step-num">✅</div><div class="edu-step-text"><strong>0.4 - 0.8%</strong> — хорошая возможность. Стоит рассмотреть.</div></div>
-            <div class="edu-step"><div class="edu-step-num">🔥</div><div class="edu-step-text"><strong>0.8%+</strong> — отличная возможность. Действовать быстро!</div></div>
-
-            <div class="edu-warning">⚠️ Всегда вычитайте комиссии! Типичные комиссии: 0.1% покупка + 0.1% продажа = 0.2% итого.</div>
-          `
-        },
-        {
-          icon:'🎯', title:'Как выбрать монету для арбитража?',
-          body:`
-            <p>Не все монеты одинаково подходят для арбитража. Вот критерии выбора:</p>
-
-            <p><strong>✅ Хорошие кандидаты:</strong></p>
-            <div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text"><strong>Высокий объём торгов</strong> — минимум $10 млн/день. Вы сможете купить и продать быстро.</div></div>
-            <div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text"><strong>Листинг на 3+ биржах</strong> — больше бирж = больше возможностей для арбитража.</div></div>
-            <div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text"><strong>Открытый вывод</strong> — монета должна свободно выводиться на обеих биржах.</div></div>
-            <div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text"><strong>Быстрая сеть</strong> — Solana (0.4 сек), BSC (3 сек) лучше чем Ethereum (15 сек+).</div></div>
-
-            <p><strong>❌ Избегайте:</strong></p>
-            <p>• Новые монеты (листинг менее 3 месяцев)</p>
-            <p>• Монеты с ограниченным выводом</p>
-            <p>• Малоликвидные токены (объём менее $1 млн/день)</p>
-            <p>• Мем-коины без реального использования</p>
-
-            <div class="edu-tip">💡 Лучшие монеты для начала: BTC, ETH, SOL, BNB, XRP — высокая ликвидность, быстрый вывод.</div>
-          `
-        },
-        {
-          icon:'⏰', title:'Когда лучше торговать?',
-          body:`
-            <p>Время имеет значение. Спреды не одинаковы в разное время суток и при разных условиях рынка.</p>
-
-            <p><strong>🔥 Лучшее время для арбитража:</strong></p>
-
-            <div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text"><strong>Во время волатильности</strong> — когда цена резко движется вверх или вниз, биржи не успевают синхронизироваться. Спреды увеличиваются.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text"><strong>Азиатская сессия (02:00-10:00 МСК)</strong> — азиатские биржи активны, западные спят. Ценовые расхождения выше.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text"><strong>После крупных новостей</strong> — новости о регуляции, хардфорке, листинге создают временные дисбалансы.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text"><strong>Конец месяца/квартала</strong> — институциональные игроки закрывают позиции, создавая аномалии.</div></div>
-
-            <div class="edu-example">
-Пример: Новость о листинге токена на Coinbase
-До новости:  $1.20 (на всех биржах)
-После на Coinbase: $1.45 (+20%)
-На других биржах: $1.22 (+1.6%)
-Арбитраж: купить везде → продать на Coinbase
-            </div>
-
-            <div class="edu-tip">💡 Используйте /monitor в LunarBit — бот работает 24/7 и поймает возможность пока вы спите!</div>
-          `
-        }
-      ]
-    },
-    {
-      icon:'💰', color:'#059669',
-      title:'Управление капиталом',
-      subtitle:'Деньги, риски и расчёт прибыли',
-      lessons: [
-        {
-          icon:'💵', title:'Сколько нужно для старта?',
-          body:`
-            <p>Один из самых частых вопросов. Честный ответ: <strong>зависит от цели</strong>.</p>
-
-            <div class="edu-example">
-Минимум для старта:    $200-500
-Комфортная работа:   $1,000-5,000
-Серьёзный доход:     $10,000+
-Профессиональный:    $50,000+
-            </div>
-
-            <p><strong>Почему маленький капитал невыгоден?</strong></p>
-
-            <p>При спреде 0.5% и капитале $200:</p>
-            <div class="edu-example">
-Валовая прибыль:  $200 × 0.5% = $1.00
-Комиссии:         $200 × 0.2% = $0.40
-Перевод между биржами: $0.50-2.00
-Чистая прибыль:   -$0.90 ... $0.10 ❌
-            </div>
-
-            <p>При спреде 0.5% и капитале $5,000:</p>
-            <div class="edu-example">
-Валовая прибыль:  $5,000 × 0.5% = $25.00
-Комиссии:         $5,000 × 0.2% = $10.00
-Перевод:          $0.50-2.00
-Чистая прибыль:   $13-14.50 ✅
-            </div>
-
-            <div class="edu-tip">💡 Начните с $500-1000 для обучения. Когда поймёте механику — увеличивайте капитал.</div>
-
-            <div class="edu-warning">⚠️ Никогда не используйте заёмные средства для арбитража! Даже маленькие задержки могут привести к убыткам.</div>
-          `
-        },
-        {
-          icon:'🧮', title:'Расчёт реальной прибыли',
-          body:`
-            <p>Многие новички считают только спред, забывая про расходы. Вот полная формула:</p>
-
-            <div class="edu-example">
-Полная формула прибыли:
-
-Прибыль = Капитал × (Спред% - Комиссия покупки% - Комиссия продажи% - Стоимость перевода%)
-
-Типичные комиссии:
-• Binance Spot:  0.1% (с BNB: 0.075%)
-• Bybit Spot:    0.1%
-• OKX Spot:      0.1%
-• KuCoin Spot:   0.1%
-• MEXC Spot:     0.0% (!)
-• Gate.io Spot:  0.2%
-            </div>
-
-            <p><strong>Пример расчёта:</strong></p>
-            <div class="edu-example">
-Спред ETH: Binance→Bybit = 0.8%
-Капитал: $2,000
-
-Прибыль брутто: $2,000 × 0.8% = $16.00
-Комиссия Binance: $2,000 × 0.1% = $2.00
-Комиссия Bybit: $2,000 × 0.1% = $2.00
-Перевод ETH (ERC20): ~$5-15
-Перевод ETH (через CEX): $0
-
-Чистая прибыль (без перевода): $12.00
-Чистая прибыль (с ERC20): -$3 ... +$7
-            </div>
-
-            <div class="edu-tip">💡 Используйте быстрые сети для перевода: Solana ($0.001), BSC ($0.10), Arbitrum ($0.05). Избегайте Ethereum mainnet!</div>
-          `
-        },
-        {
-          icon:'📋', title:'Управление рисками',
-          body:`
-            <p>Арбитраж считается низкорисковой стратегией, но риски существуют. Вот как управлять ими:</p>
-
-            <p><strong>Правило 1: Не держите всё на одной бирже</strong></p>
-            <div class="edu-example">
-Правильно:
-• Binance: 30% капитала
-• Bybit: 30% капитала
-• OKX: 20% капитала
-• Резерв: 20%
-            </div>
-
-            <p><strong>Правило 2: Лимит на одну сделку</strong></p>
-            <p>Не рискуйте более 20-30% капитала в одной сделке.</p>
-
-            <p><strong>Правило 3: Проверяйте вывод перед сделкой</strong></p>
-            <p>Всегда проверяйте что вывод монеты открыт на обеих биржах. Если вывод закрыт — арбитраж невозможен!</p>
-
-            <p><strong>Правило 4: Учитывайте время</strong></p>
-            <div class="edu-example">
-BTC (Bitcoin network): 10-60 минут
-ETH (ERC20): 2-15 минут
-SOL (Solana): 10-30 секунд
-BNB (BSC): 1-3 минуты
-            </div>
-
-            <div class="edu-warning">⚠️ За время перевода цена может изменится. Чем медленнее сеть — тем выше риск!</div>
-
-            <p><strong>Правило 5: Диверсифицируйте монеты</strong></p>
-            <p>Не торгуйте только BTC. Следите за 10-20 монетами — у разных монет разные циклы арбитражных возможностей.</p>
-          `
-        }
-      ]
-    },
-    {
-      icon:'📋', color:'#d97706',
-      title:'Пошаговые инструкции',
-      subtitle:'Как исполнить первую сделку',
-      lessons: [
-        {
-          icon:'🏦', title:'Регистрация и подготовка бирж',
-          body:`
-            <p>Для CEX арбитража вам нужны аккаунты минимум на 2-3 биржах. Рекомендуем:</p>
-
-            <div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text"><strong>Binance</strong> — крупнейшая биржа. Регистрация: binance.com. Пройдите KYC (верификацию) сразу — без неё лимиты на вывод.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text"><strong>Bybit</strong> — хорошие лимиты, низкие комиссии. Регистрация: bybit.com.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text"><strong>OKX</strong> — большой выбор монет. Регистрация: okx.com.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text"><strong>KuCoin</strong> — много мелких монет с хорошими спредами. Регистрация: kucoin.com.</div></div>
-
-            <div class="edu-tip">💡 Включите 2FA (двухфакторную аутентификацию) на всех биржах. Безопасность — прежде всего!</div>
-
-            <p><strong>Что подготовить заранее:</strong></p>
-            <p>• Пополните каждую биржу USDT (стартовый капитал)</p>
-            <p>• Проверьте адреса депозита для ваших монет</p>
-            <p>• Убедитесь что вывод открыт для нужных монет</p>
-          `
-        },
-        {
-          icon:'⚡', title:'Исполнение CEX-CEX арбитража',
-          body:`
-            <p>Пошаговая инструкция по исполнению сделки:</p>
-
-            <div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text"><strong>Найдите возможность</strong> через LunarBit. Например: SOL +0.8% (Binance→Bybit)</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text"><strong>Проверьте актуальность.</strong> Спреды живут секунды. Зайдите на обе биржи и убедитесь что цены всё ещё разные.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text"><strong>Рассчитайте прибыль.</strong> Используйте калькулятор LunarBit. Если чистая прибыль положительная — действуйте!</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text"><strong>Покупайте на бирже с низкой ценой.</strong> Используйте Market ордер для скорости, не Limit!</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">5</div><div class="edu-step-text"><strong>Немедленно продавайте на бирже с высокой ценой.</strong> Если у вас уже есть запас этой монеты — продайте сразу, не дожидаясь перевода.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">6</div><div class="edu-step-text"><strong>Переводите монеты между биржами</strong> для восстановления баланса. Выберите самую быструю и дешёвую сеть.</div></div>
-
-            <div class="edu-example">
-Профессиональный лайфхак:
-Держите запас монет на ОБЕИХ биржах.
-Тогда вам не нужно ждать перевода!
-
-Пример:
-• На Binance: $1000 USDT + 3 SOL
-• На Bybit: $1000 USDT + 3 SOL
-
-Нашли спред SOL Binance→Bybit:
-1. Купить SOL на Binance (тратим USDT)
-2. Продать SOL на Bybit (получаем USDT)
-Прибыль моментальная!
-            </div>
-
-            <div class="edu-tip">💡 Это называется "двусторонний арбитраж". Нет задержки перевода = нет риска изменения цены!</div>
-          `
-        },
-        {
-          icon:'🦊', title:'Частые ошибки новичков',
-          body:`
-            <p>За годы арбитража выявлены типичные ошибки. Изучите их чтобы не повторять!</p>
-
-            <p><strong>❌ Ошибка 1: Не учитывать комиссии</strong></p>
-            <p>Спред 0.3% выглядит привлекательно, но после комиссий 0.2% остаётся только 0.1%. Это почти ничего.</p>
-            <div class="edu-warning">Минимальный спред для прибыли: 0.4-0.5%</div>
-
-            <p><strong>❌ Ошибка 2: Использовать Limit ордера</strong></p>
-            <p>Limit ордер может не исполниться пока вы ждёте — цена уйдёт. Используйте Market ордера!</p>
-
-            <p><strong>❌ Ошибка 3: Не проверять вывод</strong></p>
-            <p>Купили монету, а вывод на бирже закрыт на технические работы. Деньги заморожены!</p>
-            <div class="edu-tip">Всегда проверяйте статус вывода ДО покупки</div>
-
-            <p><strong>❌ Ошибка 4: Паниковать при движении цены</strong></p>
-            <p>Пока переводите монеты цена может упасть. Если вы хеджируете (держите запас на обеих биржах) — вам всё равно.</p>
-
-            <p><strong>❌ Ошибка 5: Игнорировать медленные сети</strong></p>
-            <p>Перевод BTC может занять час. За это время спред исчезнет и даже появится обратный.</p>
-
-            <p><strong>❌ Ошибка 6: Слишком малый капитал</strong></p>
-            <p>С $100 комиссии сети ($1-5) съедают весь доход.</p>
-
-            <p><strong>❌ Ошибка 7: Торговать без мониторинга</strong></p>
-            <p>Хорошие возможности появляются редко и живут секунды. Без автоматического мониторинга (как LunarBit) вы пропустите большинство сделок.</p>
-          `
-        }
-      ]
-    },
-    {
-      icon:'⚠️', color:'#dc2626',
-      title:'Риски и безопасность',
-      subtitle:'Защита капитала и аккаунтов',
-      lessons: [
-        {
-          icon:'🛡️', title:'Все виды рисков арбитража',
-          body:`
-            <p>Арбитраж безопаснее трейдинга, но риски есть. Разберём каждый:</p>
-
-            <p><strong>1. Ценовой риск (исполнительский)</strong></p>
-            <p>Пока вы покупаете на бирже А и продаёте на бирже Б — цена меняется.</p>
-            <div class="edu-example">
-Нашли: Binance $67,234 → Bybit $67,891 (+0.97%)
-Купили на Binance за $67,234
-Пока выводили — цена на Bybit упала до $67,100
-Итог: УБЫТОК -$134
-            </div>
-            <p>Решение: двусторонний арбитраж (держать запас на обеих биржах)</p>
-
-            <br><p><strong>2. Риск ликвидности</strong></p>
-            <p>На маленькой бирже может не быть покупателей по нужной цене.</p>
-            <p>Решение: торгуйте только топ-20 монетами на крупных биржах.</p>
-
-            <br><p><strong>3. Биржевой риск</strong></p>
-            <p>Биржа может заморозить вывод, взломаться или обанкротиться.</p>
-            <div class="edu-warning">⚠️ Пример: FTX обанкротился в 2022. Миллиарды заморожены.</div>
-            <p>Решение: не держите более 20-30% капитала на одной бирже.</p>
-
-            <br><p><strong>4. Регуляторный риск</strong></p>
-            <p>В некоторых странах арбитраж может быть ограничен.</p>
-            <p>Решение: проверьте законодательство вашей страны.</p>
-
-            <br><p><strong>5. Технический риск</strong></p>
-            <p>Интернет отключился в момент сделки. API биржи не работает.</p>
-            <p>Решение: стабильный интернет, резервное подключение.</p>
-          `
-        },
-        {
-          icon:'🔐', title:'Безопасность аккаунтов',
-          body:`
-            <p>Ваши деньги в безопасности только если защищены аккаунты. Следуйте этим правилам:</p>
-
-            <div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text"><strong>Двухфакторная аутентификация (2FA)</strong> — обязательно! Используйте Google Authenticator или Authy. SMS ненадёжен — SIM-карту могут взломать.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text"><strong>Уникальный пароль</strong> — для каждой биржи свой пароль. Используйте менеджер паролей (Bitwarden, 1Password).</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text"><strong>Антифишинг код</strong> — установите на Binance и других биржах. Защищает от поддельных писем.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text"><strong>Whitelist адресов вывода</strong> — разрешите вывод только на проверенные адреса. Даже если взломают — не смогут вывести.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">5</div><div class="edu-step-text"><strong>Отдельный email</strong> — заведите отдельный email только для бирж. Не используйте основной.</div></div>
-
-            <div class="edu-tip">💡 Проверяйте URL биржи каждый раз! Фишинговые сайты выглядят идентично настоящим.</div>
-
-            <div class="edu-warning">⚠️ Никогда не вводите seed-фразу кошелька на сайтах! Это всегда мошенничество.</div>
-          `
-        }
-      ]
-    },
-    {
-      icon:'🚀', color:'#7c3aed',
-      title:'Продвинутый уровень',
-      subtitle:'Стратегии для опытных трейдеров',
-      lessons: [
-        {
-          icon:'💎', title:'Фандинг арбитраж',
-          body:`
-            <p>Фандинг арбитраж — одна из самых стабильных стратегий в крипто.</p>
-
-            <p><strong>Что такое фандинг?</strong></p>
-            <p>На фьючерсных биржах каждые 8 часов происходит выплата "фандинга" — это механизм выравнивания цены фьючерса с спотом. Трейдеры с лонг позицией платят тем у кого шорт (или наоборот).</p>
-
-            <div class="edu-example">
-Ставка фандинга BTC: +0.03% каждые 8 часов
-= +0.09% в день
-= +2.7% в месяц
-= +32.4% в год (!)
-            </div>
-
-            <p><strong>Стратегия:</strong></p>
-            <div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text">Купить BTC на споте (хеджируем позицию)</div></div>
-            <div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text">Открыть шорт на фьючерсах того же размера</div></div>
-            <div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text">Получать фандинг каждые 8 часов</div></div>
-            <div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text">Рыночный риск нейтрализован — цена BTC не важна!</div></div>
-
-            <div class="edu-example">
-Пример с $10,000:
-Спот: купить 0.147 BTC = $10,000
-Фьючерс: шорт 0.147 BTC
-
-Фандинг: 0.03% × 3 раза/день × $10,000 = $9/день
-В месяц: $270
-В год: $3,240 (32.4% годовых)
-            </div>
-
-            <div class="edu-tip">💡 LunarBit скоро добавит алерты о высоком фандинге! Следите за обновлениями.</div>
-
-            <div class="edu-warning">⚠️ Риск: фандинг может стать отрицательным — тогда платите вы. Следите за ставками!</div>
-          `
-        },
-        {
-          icon:'🔺', title:'Треугольный арбитраж',
-          body:`
-            <p>Треугольный арбитраж — торговля тремя валютными парами на одной бирже без переводов между биржами.</p>
-
-            <div class="edu-example">
-Пример на Binance:
-1. USDT → BTC (купить BTC за USDT)
-2. BTC → ETH (купить ETH за BTC)
-3. ETH → USDT (продать ETH за USDT)
-
-Если в конце получили больше USDT чем вначале — прибыль!
-            </div>
-
-            <p><strong>Преимущества:</strong></p>
-            <p>✅ Нет переводов между биржами</p>
-            <p>✅ Мгновенное исполнение</p>
-            <p>✅ Нет риска задержки</p>
-
-            <p><strong>Недостатки:</strong></p>
-            <p>❌ Очень маленькие спреды (0.01-0.1%)</p>
-            <p>❌ Нужна автоматизация — вручную не успеть</p>
-            <p>❌ Конкуренция с высокочастотными ботами</p>
-
-            <div class="edu-tip">💡 Треугольный арбитраж почти полностью автоматизирован крупными игроками. Для ручной торговли — сложно. Но хорошая цель для будущего LunarBit v3.0!</div>
-          `
-        }
-      ]
-    }
+    { icon:'💡', color:'#7c3aed', title:'Основы арбитража', subtitle:'Что это и как работает', lessons:[
+      { icon:'📖', title:'Что такое криптоарбитраж?', body:`<p>Арбитраж — <strong>купить дешевле в одном месте и продать дороже в другом</strong>.</p><div class="edu-example">BTC на Binance  → $67,234\nBTC на Bybit    → $67,891\nРазница         → $657 (0.97%)</div><div class="edu-tip">💡 Арбитраж существует потому что разные биржи имеют разных пользователей и разный спрос.</div>` },
+      { icon:'🔍', title:'Почему цены разные?', body:`<div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text"><strong>Разная ликвидность</strong> — Binance: миллионы, маленькая биржа: тысячи.</div></div><div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text"><strong>Разная география</strong> — азиатские биржи реагируют быстрее.</div></div><div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text"><strong>Разные маркетмейкеры</strong> — у каждой биржи свои поставщики ликвидности.</div></div><div class="edu-warning">⚠️ Спреды живут секунды. Нужно действовать быстро!</div>` },
+      { icon:'📊', title:'Виды арбитража', body:`<p><strong>CEX-CEX:</strong> Binance → Bybit → OKX<br>✅ Просто | ❌ Маленький спред (0.1-0.5%)</p><br><p><strong>CEX-DEX:</strong> Binance → Uniswap<br>✅ Большой спред (0.5-3%) | ❌ Нужен кошелёк</p><br><p><strong>Фандинг:</strong> Спот + шорт фьючерс<br>✅ Стабильный доход | 🔜 Скоро в LunarBit</p>` },
+    ]},
+    { icon:'📊', color:'#0891b2', title:'Анализ возможностей', subtitle:'Как выбирать сделки', lessons:[
+      { icon:'📈', title:'Как читать спред?', body:`<div class="edu-example">Спред = (Цена продажи - Цена покупки) / Цена покупки × 100%\n\nПример: ETH Binance $3,450 → Bybit $3,484\nСпред = 0.99%</div><div class="edu-step"><div class="edu-step-num">❌</div><div class="edu-step-text">0.0-0.2% — убыточно</div></div><div class="edu-step"><div class="edu-step-num">✅</div><div class="edu-step-text">0.4-0.8% — хорошая возможность</div></div><div class="edu-step"><div class="edu-step-num">🔥</div><div class="edu-step-text">0.8%+ — отличная! Действовать быстро!</div></div>` },
+      { icon:'🎯', title:'Какие монеты выбрать?', body:`<p>✅ <strong>Хорошие:</strong> BTC, ETH, SOL, BNB, XRP<br>• Объём > $10 млн/день<br>• Листинг на 3+ биржах<br>• Открытый вывод</p><p>❌ <strong>Избегай:</strong><br>• Новые монеты (< 3 мес)<br>• Малый объём (< $1 млн/день)</p>` },
+    ]},
+    { icon:'💰', color:'#059669', title:'Управление капиталом', subtitle:'Деньги и риски', lessons:[
+      { icon:'💵', title:'Сколько нужно?', body:`<div class="edu-example">Минимум:        $200-500\nКомфортно:    $1,000-5,000\nСерьёзный доход: $10,000+</div><p>При спреде 0.5% и $1,000:</p><div class="edu-example">Прибыль: $5.00\nКомиссии: $2.00\nЧистая: ~$3.00</div><div class="edu-warning">⚠️ Никогда не используй заёмные средства!</div>` },
+      { icon:'📋', title:'Управление рисками', body:`<div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text">Не держи всё на одной бирже (макс 30%)</div></div><div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text">Проверяй вывод ДО покупки</div></div><div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text">Используй быстрые сети: SOL, BSC, ARB</div></div><div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text">Держи запас монет на ОБЕИХ биржах</div></div>` },
+    ]},
+    { icon:'📋', color:'#d97706', title:'Пошаговая инструкция', subtitle:'Как исполнить сделку', lessons:[
+      { icon:'⚡', title:'Как исполнить арбитраж', body:`<div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text">Найди возможность через LunarBit /scan или /monitor</div></div><div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text">Проверь что спред ещё актуален на обеих биржах</div></div><div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text">Купи Market ордером (не Limit!) на дешёвой бирже</div></div><div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text">Немедленно продай на дорогой бирже</div></div><div class="edu-step"><div class="edu-step-num">5</div><div class="edu-step-text">Переведи монеты обратно через самую дешёвую сеть</div></div><div class="edu-tip">💡 Лайфхак: держи монеты на ОБЕИХ биржах — прибыль моментальная!</div>` },
+      { icon:'🦊', title:'Частые ошибки', body:`<p>❌ Не учитывать комиссии (нужен спред > 0.4%)</p><p>❌ Использовать Limit ордера (только Market!)</p><p>❌ Не проверять статус вывода заранее</p><p>❌ Слишком малый капитал (< $500)</p><p>❌ Торговать без мониторинга (используй /monitor)</p>` },
+    ]},
+    { icon:'⚠️', color:'#dc2626', title:'Риски и безопасность', subtitle:'Защита капитала', lessons:[
+      { icon:'🛡️', title:'Основные риски', body:`<p><strong>1. Ценовой риск</strong> — цена изменится пока переводишь<br>Решение: двусторонний арбитраж</p><p><strong>2. Биржевой риск</strong> — биржа может заморозить средства<br>Решение: не более 30% на одной бирже</p><p><strong>3. Технический риск</strong> — интернет, API<br>Решение: стабильное соединение</p><div class="edu-warning">⚠️ FTX обанкротился в 2022. Миллиарды заморожены.</div>` },
+      { icon:'🔐', title:'Безопасность аккаунтов', body:`<div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text">2FA через Google Authenticator (не SMS!)</div></div><div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text">Уникальный пароль для каждой биржи</div></div><div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text">Whitelist адресов вывода</div></div><div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text">Отдельный email только для бирж</div></div><div class="edu-warning">⚠️ Никогда не вводи seed-фразу на сайтах!</div>` },
+    ]},
+    { icon:'🚀', color:'#7c3aed', title:'Продвинутый уровень', subtitle:'Для опытных', lessons:[
+      { icon:'💎', title:'Фандинг арбитраж', body:`<p>Получай выплаты за ставку финансирования фьючерсов.</p><div class="edu-example">BTC фандинг: +0.03% каждые 8 часов\n= +2.7% в месяц\n= +32.4% в год!</div><p><strong>Стратегия:</strong></p><div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text">Купить BTC на споте</div></div><div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text">Открыть шорт на фьючерсах того же размера</div></div><div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text">Получать фандинг каждые 8 часов</div></div><div class="edu-tip">💡 LunarBit скоро добавит фандинг алерты!</div><div class="edu-warning">⚠️ Фандинг может стать отрицательным — следи за ставками!</div>` },
+    ]},
   ],
   en: [
-    {
-      icon:'💡', color:'#7c3aed',
-      title:'Arbitrage Basics',
-      subtitle:'What it is and how it works',
-      lessons: [
-        {
-          icon:'📖', title:'What is Crypto Arbitrage?',
-          body:`
-            <p>Arbitrage is one of the oldest trading strategies. The idea is simple: <strong>buy cheaper in one place and sell more expensive in another</strong>.</p>
-
-            <div class="edu-example">
-Regular market:
-Apples at market A → $0.50/kg
-Apples at market B → $0.70/kg
-Profit → $0.20/kg (40%)
-            </div>
-
-            <p>In crypto it's the same, but instead of markets — exchanges, and instead of apples — Bitcoin, Ethereum and other coins.</p>
-
-            <div class="edu-example">
-Crypto Arbitrage:
-BTC on Binance  → $67,234
-BTC on Bybit    → $67,891
-Difference      → $657 (0.97%)
-            </div>
-
-            <p>The main advantage over regular trading — <strong>no market risk</strong>. You don't care which way the price goes, you profit from the difference between exchanges right now.</p>
-
-            <div class="edu-tip">💡 Arbitrage exists because the market is imperfect — different exchanges have different users, different supply and demand.</div>
-          `
-        },
-        {
-          icon:'🔍', title:'Why Are Prices Different on Exchanges?',
-          body:`
-            <p>Many beginners wonder: if Bitcoin is one, why are prices different? Here are the reasons:</p>
-
-            <div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text"><strong>Different liquidity</strong> — millions trade on Binance, thousands on smaller exchanges. Higher volume = more accurate price.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text"><strong>Different geography</strong> — Asian exchanges may react to news faster than European ones.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text"><strong>Different market makers</strong> — each exchange has its own liquidity providers with different prices.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text"><strong>Arbitrageur delay</strong> — while bots equalize prices, a temporary difference forms.</div></div>
-
-            <div class="edu-tip">💡 The smaller the exchange and the less popular the coin — the larger the price discrepancies.</div>
-            <div class="edu-warning">⚠️ Spreads last seconds or minutes. You need to act fast!</div>
-          `
-        },
-        {
-          icon:'📊', title:'Types of Arbitrage',
-          body:`
-            <p>There are several types of arbitrage. Each has its pros and cons:</p>
-
-            <p><strong>1. Cross-Exchange (CEX-CEX)</strong></p>
-            <p>Buy on one centralized exchange, sell on another.</p>
-            <div class="edu-example">Binance → Bybit → OKX → KuCoin</div>
-            <p>✅ Simple | ✅ Fast | ❌ Small spread (0.1-0.5%)</p>
-
-            <br><p><strong>2. CEX-DEX Arbitrage</strong></p>
-            <p>Buy on centralized exchange, sell on decentralized (or vice versa).</p>
-            <div class="edu-example">Binance → Uniswap (Ethereum)
-Binance → Raydium (Solana)</div>
-            <p>✅ Larger spread (0.5-3%) | ❌ Need wallet | ❌ Gas fees</p>
-
-            <br><p><strong>3. Triangular Arbitrage</strong></p>
-            <p>Trade three pairs on one exchange.</p>
-            <div class="edu-example">BTC → ETH → USDT → BTC</div>
-            <p>✅ No transfers between exchanges | ❌ More complex to calculate</p>
-
-            <br><p><strong>4. Funding Arbitrage</strong></p>
-            <p>Earn funding rate payments from futures.</p>
-            <p>✅ Stable income | ✅ Minimal risk | ❌ Needs capital</p>
-
-            <div class="edu-tip">💡 LunarBit supports CEX-CEX and CEX-DEX arbitrage. Funding alerts — coming soon!</div>
-          `
-        }
-      ]
-    },
-    {
-      icon:'📊', color:'#0891b2',
-      title:'Market Analysis',
-      subtitle:'How to read data and choose trades',
-      lessons: [
-        {
-          icon:'📈', title:'How to Read a Spread?',
-          body:`
-            <p>Spread — the price difference between two exchanges, expressed as a percentage.</p>
-
-            <div class="edu-example">
-Formula:
-Spread = (Sell Price - Buy Price) / Buy Price × 100%
-
-Example:
-Buy ETH on Binance:  $3,450
-Sell ETH on Bybit:   $3,484
-Spread = (3484 - 3450) / 3450 × 100% = 0.99%
-            </div>
-
-            <p><strong>What spread is considered good?</strong></p>
-
-            <div class="edu-step"><div class="edu-step-num">❌</div><div class="edu-step-text"><strong>0.0 - 0.2%</strong> — unprofitable. Fees will eat everything.</div></div>
-            <div class="edu-step"><div class="edu-step-num">⚠️</div><div class="edu-step-text"><strong>0.2 - 0.4%</strong> — minimal profit. Risk not justified.</div></div>
-            <div class="edu-step"><div class="edu-step-num">✅</div><div class="edu-step-text"><strong>0.4 - 0.8%</strong> — good opportunity. Worth considering.</div></div>
-            <div class="edu-step"><div class="edu-step-num">🔥</div><div class="edu-step-text"><strong>0.8%+</strong> — excellent opportunity. Act fast!</div></div>
-
-            <div class="edu-warning">⚠️ Always subtract fees! Typical fees: 0.1% buy + 0.1% sell = 0.2% total.</div>
-          `
-        },
-        {
-          icon:'🎯', title:'How to Choose a Coin?',
-          body:`
-            <p>Not all coins are equally suitable for arbitrage. Here are the selection criteria:</p>
-
-            <p><strong>✅ Good candidates:</strong></p>
-            <div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text"><strong>High trading volume</strong> — minimum $10M/day. You'll be able to buy and sell quickly.</div></div>
-            <div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text"><strong>Listed on 3+ exchanges</strong> — more exchanges = more arbitrage opportunities.</div></div>
-            <div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text"><strong>Open withdrawal</strong> — the coin must be freely withdrawable on both exchanges.</div></div>
-            <div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text"><strong>Fast network</strong> — Solana (0.4 sec), BSC (3 sec) better than Ethereum (15 sec+).</div></div>
-
-            <p><strong>❌ Avoid:</strong></p>
-            <p>• New coins (listed less than 3 months ago)</p>
-            <p>• Coins with restricted withdrawal</p>
-            <p>• Illiquid tokens (volume less than $1M/day)</p>
-
-            <div class="edu-tip">💡 Best coins to start: BTC, ETH, SOL, BNB, XRP — high liquidity, fast withdrawal.</div>
-          `
-        },
-        {
-          icon:'⏰', title:'When to Trade?',
-          body:`
-            <p>Timing matters. Spreads vary at different times of day and market conditions.</p>
-
-            <p><strong>🔥 Best times for arbitrage:</strong></p>
-
-            <div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text"><strong>During volatility</strong> — when price moves sharply, exchanges can't synchronize fast enough. Spreads increase.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text"><strong>Asian session (18:00-02:00 UTC)</strong> — Asian exchanges are active, Western ones sleep. Price gaps are higher.</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text"><strong>After major news</strong> — regulation, hardfork, listing news creates temporary imbalances.</div></div>
-
-            <div class="edu-example">
-Example: Token listing news on Coinbase
-Before: $1.20 (all exchanges)
-After on Coinbase: $1.45 (+20%)
-Other exchanges: $1.22 (+1.6%)
-Arbitrage: buy everywhere → sell on Coinbase
-            </div>
-
-            <div class="edu-tip">💡 Use /monitor in LunarBit — the bot works 24/7 and catches opportunities while you sleep!</div>
-          `
-        }
-      ]
-    },
-    {
-      icon:'💰', color:'#059669',
-      title:'Capital Management',
-      subtitle:'Money, risks and profit calculation',
-      lessons: [
-        {
-          icon:'💵', title:'How Much Capital Do You Need?',
-          body:`
-            <p>One of the most common questions. Honest answer: <strong>depends on your goal</strong>.</p>
-
-            <div class="edu-example">
-Minimum to start:      $200-500
-Comfortable trading:   $1,000-5,000
-Serious income:        $10,000+
-Professional level:    $50,000+
-            </div>
-
-            <p><strong>Why is small capital unprofitable?</strong></p>
-
-            <p>With 0.5% spread and $200 capital:</p>
-            <div class="edu-example">
-Gross profit:     $200 × 0.5% = $1.00
-Fees:             $200 × 0.2% = $0.40
-Network transfer: $0.50-2.00
-Net profit:       -$0.90 ... $0.10 ❌
-            </div>
-
-            <p>With 0.5% spread and $5,000 capital:</p>
-            <div class="edu-example">
-Gross profit:  $5,000 × 0.5% = $25.00
-Fees:          $5,000 × 0.2% = $10.00
-Transfer:      $0.50-2.00
-Net profit:    $13-14.50 ✅
-            </div>
-
-            <div class="edu-tip">💡 Start with $500-1000 for learning. Once you understand the mechanics — scale up.</div>
-            <div class="edu-warning">⚠️ Never use borrowed funds for arbitrage! Even small delays can lead to losses.</div>
-          `
-        },
-        {
-          icon:'🧮', title:'Calculating Real Profit',
-          body:`
-            <p>Many beginners only count the spread, forgetting costs. Here's the full formula:</p>
-
-            <div class="edu-example">
-Full profit formula:
-
-Profit = Capital × (Spread% - Buy Fee% - Sell Fee% - Transfer Cost%)
-
-Typical fees:
-• Binance Spot:  0.1% (with BNB: 0.075%)
-• Bybit Spot:    0.1%
-• OKX Spot:      0.1%
-• KuCoin Spot:   0.1%
-• MEXC Spot:     0.0% (!)
-• Gate.io Spot:  0.2%
-            </div>
-
-            <div class="edu-tip">💡 Use fast networks for transfers: Solana ($0.001), BSC ($0.10), Arbitrum ($0.05). Avoid Ethereum mainnet!</div>
-          `
-        },
-        {
-          icon:'📋', title:'Risk Management',
-          body:`
-            <p>Arbitrage is considered low-risk but risks exist. Here's how to manage them:</p>
-
-            <p><strong>Rule 1: Don't keep everything on one exchange</strong></p>
-            <div class="edu-example">
-Correct allocation:
-• Binance: 30%
-• Bybit: 30%
-• OKX: 20%
-• Reserve: 20%
-            </div>
-
-            <p><strong>Rule 2: Limit per trade</strong></p>
-            <p>Don't risk more than 20-30% of capital in one trade.</p>
-
-            <p><strong>Rule 3: Always check withdrawal before trading</strong></p>
-            <p>If withdrawal is closed — arbitrage is impossible!</p>
-
-            <p><strong>Rule 4: Consider transfer time</strong></p>
-            <div class="edu-example">
-BTC (Bitcoin network): 10-60 min
-ETH (ERC20): 2-15 min
-SOL (Solana): 10-30 sec
-BNB (BSC): 1-3 min
-            </div>
-
-            <div class="edu-warning">⚠️ Price can change during transfer. Slower network = higher risk!</div>
-          `
-        }
-      ]
-    },
-    {
-      icon:'📋', color:'#d97706',
-      title:'Step-by-Step Guide',
-      subtitle:'How to execute your first trade',
-      lessons: [
-        {
-          icon:'⚡', title:'Executing CEX-CEX Arbitrage',
-          body:`
-            <p>Step-by-step guide to executing a trade:</p>
-
-            <div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text"><strong>Find an opportunity</strong> via LunarBit. Example: SOL +0.8% (Binance→Bybit)</div></div>
-            <div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text"><strong>Verify it's still valid.</strong> Spreads live seconds. Check both exchanges to confirm prices are still different.</div></div>
-            <div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text"><strong>Calculate profit.</strong> Use LunarBit calculator. If net profit is positive — act!</div></div>
-            <div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text"><strong>Buy on the exchange with lower price.</strong> Use Market order for speed, not Limit!</div></div>
-            <div class="edu-step"><div class="edu-step-num">5</div><div class="edu-step-text"><strong>Immediately sell on the exchange with higher price.</strong></div></div>
-            <div class="edu-step"><div class="edu-step-num">6</div><div class="edu-step-text"><strong>Transfer coins between exchanges</strong> to restore balance. Choose fastest, cheapest network.</div></div>
-
-            <div class="edu-example">
-Pro tip:
-Keep a reserve of coins on BOTH exchanges.
-Then you don't need to wait for transfers!
-
-Example:
-• On Binance: $1000 USDT + 3 SOL
-• On Bybit: $1000 USDT + 3 SOL
-
-Found SOL spread Binance→Bybit:
-1. Buy SOL on Binance (spend USDT)
-2. Sell SOL on Bybit (get USDT)
-Profit is instant!
-            </div>
-          `
-        },
-        {
-          icon:'🦊', title:'Common Beginner Mistakes',
-          body:`
-            <p>Learn from others' mistakes:</p>
-
-            <p><strong>❌ Mistake 1: Not accounting for fees</strong></p>
-            <p>0.3% spread looks attractive, but after 0.2% fees only 0.1% remains. Almost nothing.</p>
-            <div class="edu-warning">Minimum profitable spread: 0.4-0.5%</div>
-
-            <p><strong>❌ Mistake 2: Using Limit orders</strong></p>
-            <p>A Limit order might not fill while you wait — price moves away. Use Market orders!</p>
-
-            <p><strong>❌ Mistake 3: Not checking withdrawal status</strong></p>
-            <p>You bought the coin but withdrawal is closed for maintenance. Funds frozen!</p>
-
-            <p><strong>❌ Mistake 4: Panic during price movement</strong></p>
-            <p>While transferring coins the price may drop. If you hedge (hold reserves on both exchanges) — it doesn't matter.</p>
-
-            <p><strong>❌ Mistake 5: Ignoring slow networks</strong></p>
-            <p>BTC transfer can take an hour. The spread disappears and may reverse.</p>
-
-            <p><strong>❌ Mistake 6: Too small capital</strong></p>
-            <p>With $100, network fees ($1-5) eat all income.</p>
-
-            <p><strong>❌ Mistake 7: Trading without monitoring</strong></p>
-            <p>Good opportunities appear rarely and live seconds. Without automatic monitoring (like LunarBit) you'll miss most trades.</p>
-          `
-        }
-      ]
-    },
-    {
-      icon:'⚠️', color:'#dc2626',
-      title:'Risks & Security',
-      subtitle:'Protecting capital and accounts',
-      lessons: [
-        {
-          icon:'🛡️', title:'All Types of Arbitrage Risks',
-          body:`
-            <p>Arbitrage is safer than trading, but risks exist:</p>
-
-            <p><strong>1. Price Risk (Execution)</strong></p>
-            <p>While you buy on exchange A and sell on exchange B — price changes.</p>
-            <div class="edu-example">
-Found: Binance $67,234 → Bybit $67,891 (+0.97%)
-Bought on Binance at $67,234
-During withdrawal — Bybit price fell to $67,100
-Result: LOSS -$134
-            </div>
-            <p>Solution: two-sided arbitrage (hold reserves on both exchanges)</p>
-
-            <br><p><strong>2. Liquidity Risk</strong></p>
-            <p>Small exchange may not have buyers at the right price.</p>
-            <p>Solution: only trade top-20 coins on major exchanges.</p>
-
-            <br><p><strong>3. Exchange Risk</strong></p>
-            <p>Exchange may freeze withdrawals, get hacked or go bankrupt.</p>
-            <div class="edu-warning">⚠️ Example: FTX went bankrupt in 2022. Billions frozen.</div>
-            <p>Solution: don't keep more than 20-30% of capital on one exchange.</p>
-
-            <br><p><strong>4. Technical Risk</strong></p>
-            <p>Internet disconnected during a trade. Exchange API not working.</p>
-            <p>Solution: stable internet, backup connection.</p>
-          `
-        },
-        {
-          icon:'🔐', title:'Account Security',
-          body:`
-            <p>Your money is safe only if your accounts are protected:</p>
-
-            <div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text"><strong>Two-Factor Authentication (2FA)</strong> — mandatory! Use Google Authenticator or Authy. SMS is unreliable.</div></div>
-            <div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text"><strong>Unique password</strong> — different password for each exchange. Use a password manager.</div></div>
-            <div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text"><strong>Withdrawal whitelist</strong> — only allow withdrawal to verified addresses.</div></div>
-            <div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text"><strong>Separate email</strong> — create a dedicated email only for exchanges.</div></div>
-
-            <div class="edu-tip">💡 Always verify the exchange URL! Phishing sites look identical to real ones.</div>
-            <div class="edu-warning">⚠️ Never enter your wallet seed phrase on websites! It's always a scam.</div>
-          `
-        }
-      ]
-    },
-    {
-      icon:'🚀', color:'#7c3aed',
-      title:'Advanced Level',
-      subtitle:'Strategies for experienced traders',
-      lessons: [
-        {
-          icon:'💎', title:'Funding Arbitrage',
-          body:`
-            <p>Funding arbitrage is one of the most stable strategies in crypto.</p>
-
-            <p><strong>What is funding?</strong></p>
-            <p>On futures exchanges, every 8 hours a "funding" payment occurs — a mechanism to align futures price with spot. Long traders pay short traders (or vice versa).</p>
-
-            <div class="edu-example">
-BTC funding rate: +0.03% every 8 hours
-= +0.09% per day
-= +2.7% per month
-= +32.4% per year (!)
-            </div>
-
-            <p><strong>Strategy:</strong></p>
-            <div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text">Buy BTC on spot (hedge position)</div></div>
-            <div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text">Open same-size short on futures</div></div>
-            <div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text">Collect funding every 8 hours</div></div>
-            <div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text">Market risk is neutralized — BTC price doesn't matter!</div></div>
-
-            <div class="edu-tip">💡 LunarBit will soon add high funding rate alerts! Stay tuned.</div>
-            <div class="edu-warning">⚠️ Risk: funding can go negative — then you pay. Watch the rates!</div>
-          `
-        }
-      ]
-    }
+    { icon:'💡', color:'#7c3aed', title:'Arbitrage Basics', subtitle:'What it is and how it works', lessons:[
+      { icon:'📖', title:'What is Crypto Arbitrage?', body:`<p>Arbitrage: <strong>buy cheaper in one place, sell more expensive in another</strong>.</p><div class="edu-example">BTC on Binance → $67,234\nBTC on Bybit   → $67,891\nDifference     → $657 (0.97%)</div><div class="edu-tip">💡 Arbitrage exists because different exchanges have different users and demand.</div>` },
+      { icon:'🔍', title:'Why Are Prices Different?', body:`<div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text"><strong>Different liquidity</strong> — Binance: millions, small exchange: thousands.</div></div><div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text"><strong>Different geography</strong> — Asian exchanges react faster.</div></div><div class="edu-warning">⚠️ Spreads live seconds. Act fast!</div>` },
+      { icon:'📊', title:'Types of Arbitrage', body:`<p><strong>CEX-CEX:</strong> Binance → Bybit → OKX<br>✅ Simple | ❌ Small spread (0.1-0.5%)</p><br><p><strong>CEX-DEX:</strong> Binance → Uniswap<br>✅ Larger spread (0.5-3%) | ❌ Need wallet</p><br><p><strong>Funding:</strong> Spot + futures short<br>✅ Stable income | 🔜 Coming to LunarBit</p>` },
+    ]},
+    { icon:'📊', color:'#0891b2', title:'Market Analysis', subtitle:'How to choose trades', lessons:[
+      { icon:'📈', title:'How to Read a Spread?', body:`<div class="edu-example">Spread = (Sell - Buy) / Buy × 100%\n\nETH Binance $3,450 → Bybit $3,484\nSpread = 0.99%</div><div class="edu-step"><div class="edu-step-num">❌</div><div class="edu-step-text">0.0-0.2% — unprofitable</div></div><div class="edu-step"><div class="edu-step-num">✅</div><div class="edu-step-text">0.4-0.8% — good opportunity</div></div><div class="edu-step"><div class="edu-step-num">🔥</div><div class="edu-step-text">0.8%+ — excellent! Act fast!</div></div>` },
+      { icon:'🎯', title:'Which Coins to Choose?', body:`<p>✅ <strong>Good:</strong> BTC, ETH, SOL, BNB, XRP<br>• Volume > $10M/day<br>• Listed on 3+ exchanges</p><p>❌ <strong>Avoid:</strong><br>• New coins (< 3 months)<br>• Low volume (< $1M/day)</p>` },
+    ]},
+    { icon:'💰', color:'#059669', title:'Capital Management', subtitle:'Money and risks', lessons:[
+      { icon:'💵', title:'How Much Capital?', body:`<div class="edu-example">Minimum:     $200-500\nComfortable: $1,000-5,000\nSerious:     $10,000+</div><div class="edu-warning">⚠️ Never use borrowed funds!</div>` },
+      { icon:'📋', title:'Risk Management', body:`<div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text">Max 30% on one exchange</div></div><div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text">Check withdrawal BEFORE buying</div></div><div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text">Keep reserves on BOTH exchanges</div></div>` },
+    ]},
+    { icon:'📋', color:'#d97706', title:'Step-by-Step Guide', subtitle:'How to execute a trade', lessons:[
+      { icon:'⚡', title:'How to Execute Arbitrage', body:`<div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text">Find opportunity via LunarBit /scan or /monitor</div></div><div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text">Verify spread is still valid on both exchanges</div></div><div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text">Buy with Market order (not Limit!) on cheaper exchange</div></div><div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text">Immediately sell on more expensive exchange</div></div><div class="edu-tip">💡 Keep reserves on BOTH exchanges for instant profit!</div>` },
+      { icon:'🦊', title:'Common Mistakes', body:`<p>❌ Not accounting for fees (need spread > 0.4%)</p><p>❌ Using Limit orders (Market only!)</p><p>❌ Not checking withdrawal status first</p><p>❌ Too small capital (< $500)</p><p>❌ Trading without monitoring (use /monitor)</p>` },
+    ]},
+    { icon:'⚠️', color:'#dc2626', title:'Risks & Security', subtitle:'Protecting capital', lessons:[
+      { icon:'🛡️', title:'Main Risks', body:`<p><strong>1. Price risk</strong> — price changes during transfer<br>Solution: two-sided arbitrage</p><p><strong>2. Exchange risk</strong> — exchange may freeze funds<br>Solution: max 30% on one exchange</p><div class="edu-warning">⚠️ FTX went bankrupt in 2022. Billions frozen.</div>` },
+      { icon:'🔐', title:'Account Security', body:`<div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text">2FA via Google Authenticator (not SMS!)</div></div><div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text">Unique password for each exchange</div></div><div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text">Withdrawal whitelist</div></div><div class="edu-warning">⚠️ Never enter seed phrase on websites!</div>` },
+    ]},
+    { icon:'🚀', color:'#7c3aed', title:'Advanced Level', subtitle:'For experienced traders', lessons:[
+      { icon:'💎', title:'Funding Arbitrage', body:`<div class="edu-example">BTC funding: +0.03% every 8 hours\n= +2.7% per month\n= +32.4% per year!</div><div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text">Buy BTC on spot</div></div><div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text">Open same-size short on futures</div></div><div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text">Collect funding every 8 hours</div></div><div class="edu-tip">💡 LunarBit will add funding alerts soon!</div>` },
+    ]},
   ],
   am: [
-    {
-      icon:'💡', color:'#7c3aed',
-      title:'Արբիտրաժի հիմունքներ',
-      subtitle:'Ինչ է դա և ինչպես է աշխատում',
-      lessons: [
-        {
-          icon:'📖', title:'Ի՞նչ է կրիպտոարբիտրաժը?',
-          body:`
-            <p>Արբիտրաժը առևտրի ամենահին ռազմավարություններից մեկն է։ Էությունը պարզ է. <strong>գնել ավելի էժան մի տեղ և վաճառել ավելի թանկ մեկ այլ տեղ</strong>։</p>
-
-            <div class="edu-example">
-Սովորական շուկա:
-Խնձոր շուկա Ա-ում → 500 դրամ/կգ
-Խնձոր շուկա Բ-ում → 700 դրամ/կգ
-Շահույթ → 200 դրամ/կգ (40%)
-            </div>
-
-            <p>Կրիպտոյում նույնն է, բայց շուկաների փոխարեն — բորսաներ, իսկ խնձորների փոխարեն — Bitcoin, Ethereum և այլ մոնետներ։</p>
-
-            <div class="edu-example">
-Կրիպտոարբիտրաժ:
-BTC Binance-ում  → $67,234
-BTC Bybit-ում    → $67,891
-Տարբերություն   → $657 (0.97%)
-            </div>
-
-            <p>Գլխավոր առավելությունը — <strong>շուկայական ռիսկի բացակայություն</strong>։ Կարևոր չէ ուր է գնում գինը, դուք վաստակում եք բորսաների միջև տարբերությամբ հենց հիմա։</p>
-
-            <div class="edu-tip">💡 Արբիտրաժը գոյություն ունի որովհետև շուկան կատարյալ չէ — տարբեր բորսաներ ունեն տարբեր օգտատերեր, տարբեր պահանջ և առաջարկ։</div>
-          `
-        },
-        {
-          icon:'🔍', title:'Ինչու՞ են գները տարբեր բորսաներում?',
-          body:`
-            <p>Շատ սկսնակներ զարմանում են. եթե Bitcoin-ը մեկն է, ինչու՞ են գները տարբեր? Ահա պատճառները.</p>
-
-            <div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text"><strong>Տարբեր ռիկվիդություն</strong> — Binance-ում առևտուր է անում միլիոնավոր մարդ, փոքր բորսայում — հազարավոր։</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text"><strong>Տարբեր աշխարհագրություն</strong> — ասիական բորսաները կարող են արձագանքել նորություններին ավելի արագ։</div></div>
-
-            <div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text"><strong>Արբիտրաժորների ուշացում</strong> — մինչ բոտերը հավասարեցնում են գները, ձևավորվում է ժամանակավոր տարբերություն։</div></div>
-
-            <div class="edu-tip">💡 Որքան փոքր է բորսան և ոչ հայտնի մոնետը — այնքան մեծ են գների տարբերությունները։</div>
-            <div class="edu-warning">⚠️ Սփրեդները գոյություն ունեն վայրկյաններ կամ րոպեներ։ Անհրաժեշտ է արագ գործել!</div>
-          `
-        },
-        {
-          icon:'📊', title:'Արբիտրաժի տեսակները',
-          body:`
-            <p>Կան արբիտրաժի մի քանի տեսակ.</p>
-
-            <p><strong>1. Միջ-բորսային (CEX-CEX)</strong></p>
-            <div class="edu-example">Binance → Bybit → OKX → KuCoin</div>
-            <p>✅ Պարզ | ✅ Արագ | ❌ Փոքր սփրեդ (0.1-0.5%)</p>
-
-            <br><p><strong>2. CEX-DEX արբիտրաժ</strong></p>
-            <div class="edu-example">Binance → Uniswap (Ethereum)
-Binance → Raydium (Solana)</div>
-            <p>✅ Մեծ սփրեդ (0.5-3%) | ❌ Պետք է դրամապանակ | ❌ Gas fees</p>
-
-            <br><p><strong>3. Եռանկյուն արբիտրաժ</strong></p>
-            <div class="edu-example">BTC → ETH → USDT → BTC</div>
-            <p>✅ Փոխանցումներ չկան | ❌ Ավելի բարդ</p>
-
-            <br><p><strong>4. Ֆանդինգ արբիտրաժ</strong></p>
-            <p>✅ Կայուն եկամուտ | ✅ Նվազագույն ռիսկ | ❌ Պետք է կապիտալ</p>
-
-            <div class="edu-tip">💡 LunarBit-ը աջակցում է CEX-CEX և CEX-DEX արբիտրաժին։</div>
-          `
-        }
-      ]
-    },
-    {
-      icon:'📊', color:'#0891b2',
-      title:'Շուկայի վերլուծություն',
-      subtitle:'Ինչպես կարդալ տվյալները',
-      lessons: [
-        {
-          icon:'📈', title:'Ինչպե՞ս կարդալ սփրեդը?',
-          body:`
-            <p>Սփրեդ — երկու բորսաների գների տարբերությունը, արտահայտված տոկոսով։</p>
-
-            <div class="edu-example">
-Բանաձև:
-Սփրեդ = (Վաճառքի գին - Գնման գին) / Գնման գին × 100%
-
-Օրինակ:
-Գնել ETH Binance-ում: $3,450
-Վաճառել ETH Bybit-ում: $3,484
-Սփրեդ = (3484-3450)/3450 × 100% = 0.99%
-            </div>
-
-            <div class="edu-step"><div class="edu-step-num">❌</div><div class="edu-step-text"><strong>0.0 - 0.2%</strong> — ոչ շահութաբեր։ Կոմիսիոնները կուտեն ամեն ինչ։</div></div>
-            <div class="edu-step"><div class="edu-step-num">⚠️</div><div class="edu-step-text"><strong>0.2 - 0.4%</strong> — նվազագույն շահույթ։</div></div>
-            <div class="edu-step"><div class="edu-step-num">✅</div><div class="edu-step-text"><strong>0.4 - 0.8%</strong> — լավ հնարավորություն։</div></div>
-            <div class="edu-step"><div class="edu-step-num">🔥</div><div class="edu-step-text"><strong>0.8%+</strong> — գերազանց հնարավորություն! Արագ գործիր!</div></div>
-
-            <div class="edu-warning">⚠️ Միշտ հանիր կոմիսիոնները! 0.1% + 0.1% = 0.2% ընդամենը։</div>
-          `
-        },
-        {
-          icon:'🎯', title:'Ինչպե՞ս ընտրել մոնետ?',
-          body:`
-            <p>Բոլոր մոնետները հավասարապես հարմար չեն արբիտրաժի համար.</p>
-
-            <p><strong>✅ Լավ թեկնածուներ:</strong></p>
-            <div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text"><strong>Բարձր առևտրի ծավալ</strong> — նվազ. $10 մլն/օր</div></div>
-            <div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text"><strong>3+ բորսայի վրա</strong> — ավելի շատ բորսա = ավելի շատ հնարավորություններ</div></div>
-            <div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text"><strong>Բաց դուրս բերում</strong> — մոնետը պետք է ազատ դուրս բերվի</div></div>
-            <div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text"><strong>Արագ ցանց</strong> — Solana (0.4 վրկ), BSC (3 վրկ)</div></div>
-
-            <div class="edu-tip">💡 Սկսնակների համար լավագույն մոնետներ: BTC, ETH, SOL, BNB, XRP</div>
-          `
-        }
-      ]
-    },
-    {
-      icon:'💰', color:'#059669',
-      title:'Կապիտալի կառավարում',
-      subtitle:'Փول, ռիսկեր և շահույթի հաշվարկ',
-      lessons: [
-        {
-          icon:'💵', title:'Որքա՞ն կապիտալ է պետք?',
-          body:`
-            <div class="edu-example">
-Նվազագույն սկիզբ:       $200-500
-Հարմարավետ առևտուր:   $1,000-5,000
-Լուրջ եկամուտ:          $10,000+
-Պրոֆեսիոնալ:            $50,000+
-            </div>
-
-            <p><strong>Ինչու փոքր կապիտալն անշահավետ է?</strong></p>
-
-            <p>0.5% սփրեդով և $200 կապիտալով.</p>
-            <div class="edu-example">
-Բրուտո շահույթ: $200 × 0.5% = $1.00
-Կոմիսիոններ: $200 × 0.2% = $0.40
-Փոխանցում ցանցով: $0.50-2.00
-Մաքուր շահույթ: -$0.90 ... $0.10 ❌
-            </div>
-
-            <p>0.5% սփրեդով և $5,000 կապիտալով.</p>
-            <div class="edu-example">
-Բրուտո շահույթ: $5,000 × 0.5% = $25.00
-Կոմիսիոններ: $5,000 × 0.2% = $10.00
-Փոխանցում: $0.50-2.00
-Մաքուր շահույթ: $13-14.50 ✅
-            </div>
-
-            <div class="edu-tip">💡 Սկսիր $500-1000-ով սովորելու համար։ Երբ հասկանաս մեխանիկան — ավելացրու կապիտալը։</div>
-            <div class="edu-warning">⚠️ Երբեք մի օգտագործիր փոխառու միջոցներ արբիտրաժի համար!</div>
-          `
-        },
-        {
-          icon:'📋', title:'Ռիսկերի կառավարում',
-          body:`
-            <p><strong>Կանոն 1: Մի պահիր ամեն ինչ մեկ բորսայում</strong></p>
-            <div class="edu-example">
-Ճիշտ բաշխում:
-• Binance: 30%
-• Bybit: 30%
-• OKX: 20%
-• Պահուստ: 20%
-            </div>
-
-            <p><strong>Կանոն 2: Նախքան գնելը ստուգիր դուրս բերումը</strong></p>
-            <p>Եթե դուրս բերումը փակ է — արբիտրաժն անհնար է!</p>
-
-            <p><strong>Կանոն 3: Հաշվիր փոխանցման ժամանակը</strong></p>
-            <div class="edu-example">
-BTC (Bitcoin): 10-60 րոպե
-ETH (ERC20): 2-15 րոպե
-SOL (Solana): 10-30 վայրկյան
-BNB (BSC): 1-3 րոպե
-            </div>
-
-            <div class="edu-warning">⚠️ Փոխանցման ընթացքում գինը կարող է փոխվել!</div>
-          `
-        }
-      ]
-    },
-    {
-      icon:'📋', color:'#d97706',
-      title:'Քայլ առ քայլ հրահանգ',
-      subtitle:'Ինչպես կատարել առաջին գործարքը',
-      lessons: [
-        {
-          icon:'⚡', title:'CEX-CEX արբիտրաժի կատարում',
-          body:`
-            <div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text"><strong>Գտիր հնարավորություն</strong> LunarBit-ի միջոցով։ Օրինակ: SOL +0.8% (Binance→Bybit)</div></div>
-            <div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text"><strong>Ստուգիր արդիականությունը։</strong> Մտիր երկու բորսա և համոզվիր որ գները դեռ տարբեր են։</div></div>
-            <div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text"><strong>Հաշվիր շահույթը։</strong> Օգտագործիր LunarBit հաշվիչ։</div></div>
-            <div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text"><strong>Գնիր ցածր գնով բորսայից։</strong> Օգտագործիր Market ордер արագության համար!</div></div>
-            <div class="edu-step"><div class="edu-step-num">5</div><div class="edu-step-text"><strong>Անմիջապես վաճառիր բարձր գնով բորսայում։</strong></div></div>
-            <div class="edu-step"><div class="edu-step-num">6</div><div class="edu-step-text"><strong>Փոխանցիր մոնետները</strong> բորսաների միջև հաշվեկշիռը վերականգնելու համար։</div></div>
-
-            <div class="edu-example">
-Պրոֆեսիոնալ հուշ:
-Պահիր մոնետների պաշար ԵՐԿՈՒ բորսայում:
-Ապա պետք չէ սպասել փոխանցմանը!
-
-Օրինակ:
-• Binance-ում: $1000 USDT + 3 SOL
-• Bybit-ում: $1000 USDT + 3 SOL
-
-Գտաք SOL սփրեդ Binance→Bybit:
-1. Գնիր SOL Binance-ում
-2. Վաճառիր SOL Bybit-ում
-Շահույթը ակնթարթային է!
-            </div>
-          `
-        },
-        {
-          icon:'🦊', title:'Սկսնակների տիպիկ սխալները',
-          body:`
-            <p><strong>❌ Սխալ 1: Կոմիսիոնները չհաշվել</strong></p>
-            <p>0.3% սփրեդը գրավիչ է, բայց 0.2% կոմիսիոններից հետո մնում է 0.1%։</p>
-            <div class="edu-warning">Նվ. շահութաբեր սփրեդ: 0.4-0.5%</div>
-
-            <p><strong>❌ Սխալ 2: Limit ордер-ի օգտագործում</strong></p>
-            <p>Limit ордер-ը կարող է չկատարվել, գինը կհեռանա։ Օգտագործիր Market ордер!</p>
-
-            <p><strong>❌ Սխալ 3: Դուրս բերումը չստուգել</strong></p>
-            <p>Գնեցիր մոնետ, իսկ դուրս բերումը փակ է տեխնիկական աշխատանքների համար!</p>
-
-            <p><strong>❌ Սխալ 4: Փոքր կապիտալ</strong></p>
-            <p>$100-ի դեպքում ցանցի կոմիսիոնները ($1-5) կուտեն ամբողջ եկամուտը։</p>
-
-            <p><strong>❌ Սխալ 5: Մոնիտորինգ չկա</strong></p>
-            <p>Լավ հնարավորությունները հազվադեպ են հայտնվում։ LunarBit-ի /monitor-ն աշխատում է 24/7!</p>
-          `
-        }
-      ]
-    },
-    {
-      icon:'⚠️', color:'#dc2626',
-      title:'Ռիսկեր և անվտանգություն',
-      subtitle:'Կապիտալի և հաշիվների պաշտպանություն',
-      lessons: [
-        {
-          icon:'🛡️', title:'Արբիտրաժի բոլոր ռիսկերը',
-          body:`
-            <p><strong>1. Գնային ռիսկ</strong></p>
-            <div class="edu-example">
-Գտաք: Binance $67,234 → Bybit $67,891 (+0.97%)
-Գնեցիք Binance-ում $67,234-ով
-Դուրս բերման ընթացքում Bybit-ի գինը ընկավ $67,100
-Արդյունք: ՎՆԱՍ -$134
-            </div>
-            <p>Լուծում: երկկողմանի արբիտրաժ</p>
-
-            <br><p><strong>2. Ռիկվիդության ռիսկ</strong></p>
-            <p>Փոքր բորսայում կարող է չլինեն գնորդներ։</p>
-            <p>Լուծում: միայն TOP-20 մոնետ խոշոր բորսաներում։</p>
-
-            <br><p><strong>3. Բորսայի ռիսկ</strong></p>
-            <div class="edu-warning">⚠️ FTX-ը սնանկացավ 2022-ին։ Միլիարդներ սառեցվեցին։</div>
-            <p>Լուծում: մի պահիր ավելին քան 30% մեկ բորսայում։</p>
-          `
-        },
-        {
-          icon:'🔐', title:'Հաշիվների անվտանգություն',
-          body:`
-            <div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text"><strong>Երկգործոն նույնականացում (2FA)</strong> — պարտադիր! Google Authenticator կամ Authy.</div></div>
-            <div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text"><strong>Յուրահատուկ գաղտնաբառ</strong> — յուրաքանչյուր բորսայի համար առանձին.</div></div>
-            <div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text"><strong>Դուրս բերման whitelist</strong> — թույլ տուր դուրս բերումը միայն ստուգված հասցեներ.</div></div>
-            <div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text"><strong>Առանձին email</strong> — բորսաների համար նոր email հասցե.</div></div>
-
-            <div class="edu-tip">💡 Միշտ ստուգիր բորսայի URL-ը! Ֆիշինգ կայքերը նույնական են տեսնվում.</div>
-            <div class="edu-warning">⚠️ Երբեք մի մուտքագրիր դրամապանակի seed-արտահայտությունը կայքերում!</div>
-          `
-        }
-      ]
-    },
-    {
-      icon:'🚀', color:'#7c3aed',
-      title:'Առաջադեմ մակարդակ',
-      subtitle:'Ռազմավարություններ փորձառու տրեյդերների համար',
-      lessons: [
-        {
-          icon:'💎', title:'Ֆանդինգ արբիտրաժ',
-          body:`
-            <p>Ֆանդինգ արբիտրաժը կրիպտոյի ամենակայուն ռազմավարություններից մեկն է։</p>
-
-            <p><strong>Ի՞նչ է ֆանդինգը?</strong></p>
-            <p>Ֆյուչերսային բորսաներում 8 ժամը մեկ տեղի է ունենում "ֆանդինգ" — մեխանիզմ ֆյուչերսի գինը սփոթի հետ հավասարեցնելու համար.</p>
-
-            <div class="edu-example">
-BTC ֆանդինգի տոկոս: +0.03% 8 ժամը մեկ
-= +0.09% օրական
-= +2.7% ամսական
-= +32.4% տարեկան (!)
-            </div>
-
-            <p><strong>Ռազմավարություն:</strong></p>
-            <div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text">Գնել BTC սփոթ (հեջ)</div></div>
-            <div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text">Բացել նույն չափի շորթ ֆյուչերսներ</div></div>
-            <div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text">Ստանալ ֆանդինգ 8 ժամը մեկ</div></div>
-            <div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text">Շուկայական ռիսկ չկա — BTC-ի գինն aps կարևոր!</div></div>
-
-            <div class="edu-tip">💡 LunarBit-ը շուտով կավելացնի բարձր ֆանդինգի ծանուցումներ!</div>
-            <div class="edu-warning">⚠️ Ռիսկ: ֆանդինգը կարող է բացասական դառնալ — ապա դուք եք վճարում!</div>
-          `
-        }
-      ]
-    }
+    { icon:'💡', color:'#7c3aed', title:'Արբիտրաժի հիմունքներ', subtitle:'Ինչ է դա', lessons:[
+      { icon:'📖', title:'Ի՞նչ է կրիպտոարբիտրաժը?', body:`<p>Արբիտրաժ — <strong>գնել ավելի էժան մի տեղ, վաճառել ավելի թանկ մեկ այլ տեղ</strong>։</p><div class="edu-example">BTC Binance-ում → $67,234\nBTC Bybit-ում   → $67,891\nՏարբերություն  → $657 (0.97%)</div><div class="edu-tip">💡 Արբիտրաժը գոյություն ունի որովհետև բորսաները ունեն տարբեր գներ։</div>` },
+      { icon:'🔍', title:'Ինչու՞ են գները տարբեր?', body:`<div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text"><strong>Տարբեր ռիկվիդություն</strong> — Binance: միլիոններ, փոքր բորսա: հազարավոր</div></div><div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text"><strong>Տարբեր աշխարհագրություն</strong> — ասիական բորսաները արձագանքում են ավելի արագ</div></div><div class="edu-warning">⚠️ Սփրեդները կան վայրկյաններ։ Արագ գործիր!</div>` },
+    ]},
+    { icon:'📊', color:'#0891b2', title:'Շուկայի վերլուծություն', subtitle:'Ինչպես ընտրել', lessons:[
+      { icon:'📈', title:'Ինչպե՞ս կարդալ սփրեդը?', body:`<div class="edu-example">Սփրեդ = (Վաճառք - Գնում) / Գնում × 100%</div><div class="edu-step"><div class="edu-step-num">❌</div><div class="edu-step-text">0.0-0.2% — ոչ շահութաբեր</div></div><div class="edu-step"><div class="edu-step-num">✅</div><div class="edu-step-text">0.4-0.8% — լավ հնարավորություն</div></div><div class="edu-step"><div class="edu-step-num">🔥</div><div class="edu-step-text">0.8%+ — գերազանց! Արագ գործիր!</div></div>` },
+    ]},
+    { icon:'💰', color:'#059669', title:'Կապիտալի կառավարում', subtitle:'Փող և ռիսկեր', lessons:[
+      { icon:'💵', title:'Որքա՞ն կապիտալ?', body:`<div class="edu-example">Նվազ.: $200-500\nՀարմ.: $1,000-5,000\nՊրոֆ.: $10,000+</div><div class="edu-warning">⚠️ Երբեք մի օգտագործիր փոխառու միջոցներ!</div>` },
+      { icon:'📋', title:'Ռիսկերի կառավարում', body:`<div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text">Մի պահիր > 30% մեկ բորսայում</div></div><div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text">Ստուգիր դուրս բերումը ԱՌԱՋ գնելուց</div></div><div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text">Պահիր պաշար ԵՐԿՈՒ բորսայում</div></div>` },
+    ]},
+    { icon:'📋', color:'#d97706', title:'Քայլ առ քայլ', subtitle:'Ինչպես կատարել գործարք', lessons:[
+      { icon:'⚡', title:'Ինչպե՞ս կատարել արբիտրաժ', body:`<div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text">Գտիր հնարավորություն LunarBit-ով</div></div><div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text">Ստուգիր որ սփրեդը դեռ կա</div></div><div class="edu-step"><div class="edu-step-num">3</div><div class="edu-step-text">Գնիր Market ордером (ոչ Limit!)</div></div><div class="edu-step"><div class="edu-step-num">4</div><div class="edu-step-text">Անմիջապես վաճառիր ավելի թանկ բորսայում</div></div><div class="edu-tip">💡 Պահիր պաշար ԵՐԿՈՒ բորսայում — ակնթարթային շահույթ!</div>` },
+    ]},
+    { icon:'⚠️', color:'#dc2626', title:'Ռիսկեր և անվտանգություն', subtitle:'Պաշտպանություն', lessons:[
+      { icon:'🛡️', title:'Հիմնական ռիսկեր', body:`<p><strong>1. Գնային ռիսկ</strong> — գինը փոխվի փոխանցման ժամանակ<br>Լուծում: երկկողմ արբիտրաժ</p><p><strong>2. Բորսայի ռիսկ</strong> — բորսան կարող է սառեցնել միջոցներ<br>Լուծում: մաքս 30% մեկ բորսայում</p><div class="edu-warning">⚠️ FTX-ը սնանկացավ 2022-ին։</div>` },
+      { icon:'🔐', title:'Հաշիվների անվտանգություն', body:`<div class="edu-step"><div class="edu-step-num">1</div><div class="edu-step-text">2FA Google Authenticator-ով (ոչ SMS!)</div></div><div class="edu-step"><div class="edu-step-num">2</div><div class="edu-step-text">Առանձին գաղտնաբառ յուրաքանչյուր բորսայի</div></div><div class="edu-warning">⚠️ Երբեք մի մուտքագրիր seed-արտահայտությունը!</div>` },
+    ]},
+    { icon:'🚀', color:'#7c3aed', title:'Առաջադեմ մակարդակ', subtitle:'Փորձառու տրեյդերների համար', lessons:[
+      { icon:'💎', title:'Ֆանդինգ արբիտրաժ', body:`<div class="edu-example">BTC ֆանդինգ: +0.03% 8 ժամը մեկ\n= +2.7% ամսական\n= +32.4% տարեկան!</div><div class="edu-tip">💡 LunarBit-ը շուտով կավելացնի ֆանդինգ ծանուցումներ!</div>` },
+    ]},
   ]
 };
 
 // ── INIT ─────────────────────────────────────────────────
 window.onload = async () => {
-  if (tg.initDataUnsafe?.user) {
-    userId = tg.initDataUnsafe.user.id;
-  }
-  if (!lang) {
-    document.getElementById('langOverlay').style.display = 'flex';
+  // Сохраняем язык в Telegram CloudStorage
+  if (tg.CloudStorage) {
+    tg.CloudStorage.getItem('lb_lang', (err, val) => {
+      lang = val || localStorage.getItem('lb_lang') || null;
+      if (!lang) {
+        document.getElementById('langOverlay').style.display = 'flex';
+      } else {
+        init();
+      }
+    });
   } else {
-    init();
+    lang = localStorage.getItem('lb_lang') || null;
+    if (!lang) {
+      document.getElementById('langOverlay').style.display = 'flex';
+    } else {
+      init();
+    }
   }
 };
 
 function setLang(l) {
   lang = l;
   localStorage.setItem('lb_lang', l);
+  if (tg.CloudStorage) {
+    tg.CloudStorage.setItem('lb_lang', l);
+  }
   document.getElementById('langOverlay').style.display = 'none';
   init();
 }
@@ -1983,39 +421,53 @@ function applyTranslations() {
 }
 
 async function loadUser() {
-  if (!userId) return;
+  if (!userId) {
+    document.getElementById('refLink').textContent = t('noProfile');
+    return;
+  }
   try {
     const r = await fetch(`${API}/api/user/${userId}`);
+    if (!r.ok) throw new Error('API error');
     userData = await r.json();
     userPlan = userData.plan || 'free';
 
     const planNames = {free:t('planFree'), basic:t('planBasic'), pro:t('planPro')};
-    document.getElementById('statPlan').textContent = planNames[userPlan] || 'Free';
+    const planName = planNames[userPlan] || t('planFree');
 
+    document.getElementById('statPlan').textContent = planName;
     const badge = document.getElementById('planBadge');
-    badge.textContent = planNames[userPlan] || 'Free';
+    badge.textContent = planName;
     badge.className = `plan-badge plan-${userPlan}`;
 
     document.getElementById('profileExpires').textContent = userData.expires || '—';
-    document.getElementById('profileScans').textContent = userData.scan_count || 0;
+    document.getElementById('profileScans').textContent = userData.scan_count !== undefined ? userData.scan_count : '—';
     document.getElementById('profileRefs').textContent = userData.ref_count || 0;
-    document.getElementById('refLink').textContent = `https://t.me/LunarBit_Bot?start=REF${userId}`;
-  } catch(e) {}
+
+    // Реферальная ссылка
+    const refCode = `REF${userId}`;
+    const refUrl = `https://t.me/${BOT_USERNAME}?start=${refCode}`;
+    document.getElementById('refLink').textContent = refUrl;
+  } catch(e) {
+    document.getElementById('refLink').textContent = `https://t.me/${BOT_USERNAME}?start=REF${userId}`;
+    document.getElementById('statPlan').textContent = t('planFree');
+  }
 }
 
 async function loadSpreads() {
   try {
     const url = userId ? `${API}/api/spreads?user_id=${userId}` : `${API}/api/spreads`;
     const r = await fetch(url);
+    if (!r.ok) throw new Error('API error');
     const data = await r.json();
     spreadsData = data.spreads || [];
-    document.getElementById('statTotal').textContent = spreadsData.filter(s=>!s.locked).length;
-    const best = spreadsData.find(s=>!s.locked);
+    const unlocked = spreadsData.filter(s=>!s.locked);
+    document.getElementById('statTotal').textContent = unlocked.length;
+    const best = unlocked[0];
     document.getElementById('statBest').textContent = best ? `+${best.spread.toFixed(2)}%` : '—';
     renderSpreads();
     calcUpdate();
   } catch(e) {
-    document.getElementById('spreadsList').innerHTML = `<div class="empty">${t('noOpps')}</div>`;
+    document.getElementById('spreadsList').innerHTML = `<div class="empty">${t('noOpps')}<br><br><button onclick="refreshSpreads()" style="background:rgba(0,229,255,0.1);border:1px solid var(--accent);color:var(--accent);border-radius:20px;padding:8px 20px;font-size:13px;cursor:pointer;margin-top:8px">${t('refresh')}</button></div>`;
   }
 }
 
@@ -2033,18 +485,20 @@ function setFilter(f, btn) {
 
 function renderSpreads() {
   const list = document.getElementById('spreadsList');
-  let data = spreadsData;
+  let data = [...spreadsData];
   if (activeFilter==='cex') data = data.filter(s=>!s.is_dex);
   if (activeFilter==='dex') data = data.filter(s=>s.is_dex);
 
   if (!data.length) {
-    list.innerHTML = `<div class="empty">${t('noOpps')}</div>`;
+    list.innerHTML = `<div class="empty">${t('noOpps')}<br><br><button onclick="refreshSpreads()" style="background:rgba(0,229,255,0.1);border:1px solid var(--accent);color:var(--accent);border-radius:20px;padding:8px 20px;font-size:13px;cursor:pointer">${t('refresh')}</button></div>`;
     return;
   }
 
   list.innerHTML = data.slice(0,30).map(s => {
     const hot = s.spread >= 0.8;
     const lockText = s.lock_reason==='pro' ? t('lockedPro') : t('lockedBasic');
+    const buyPrice = s.buy_p < 0.01 ? s.buy_p.toFixed(8) : formatP(s.buy_p);
+    const sellPrice = s.sell_p < 0.01 ? s.sell_p.toFixed(8) : formatP(s.sell_p);
     return `<div class="opp-card${hot?' hot':''}">
       <div class="opp-top">
         <div class="opp-pair">${s.sym}/USDT${hot?' 🔥':''}</div>
@@ -2056,8 +510,8 @@ function renderSpreads() {
         <span class="ex-badge" style="color:#00e676">${s.sell_ex}</span>
       </div>
       <div class="opp-prices">
-        <div class="price-item"><div class="plbl">${t('buy')}</div><div class="pval">$${formatP(s.buy_p)}</div></div>
-        <div class="price-item"><div class="plbl">${t('sell')}</div><div class="pval">$${formatP(s.sell_p)}</div></div>
+        <div class="price-item"><div class="plbl">${t('buy')}</div><div class="pval">$${buyPrice}</div></div>
+        <div class="price-item"><div class="plbl">${t('sell')}</div><div class="pval">$${sellPrice}</div></div>
       </div>
       ${s.locked?`<div class="lock-overlay" onclick="openPremium()"><div class="lock-icon">🔒</div><div class="lock-text">${lockText}</div></div>`:''}
     </div>`;
@@ -2093,7 +547,6 @@ function calcUpdate() {
 function renderEdu() {
   const modules = EDU[lang]||EDU['en'];
   const total = modules.reduce((s,m)=>s+m.lessons.length,0);
-
   document.getElementById('eduContent').innerHTML = modules.map((m,mi)=>`
     <div class="edu-module" id="mod${mi}">
       <div class="edu-module-header" onclick="toggleModule(${mi})">
@@ -2119,7 +572,6 @@ function renderEdu() {
       </div>
     </div>
   `).join('');
-
   updateProgress(total);
 }
 
@@ -2130,9 +582,7 @@ function toggleModule(i) {
 function toggleLesson(mi, li) {
   const les = document.getElementById(`les${mi}_${li}`);
   les.classList.toggle('open');
-  if (les.classList.contains('open')) {
-    openedLessons.add(`${mi}_${li}`);
-  }
+  if (les.classList.contains('open')) openedLessons.add(`${mi}_${li}`);
   const modules = EDU[lang]||EDU['en'];
   const total = modules.reduce((s,m)=>s+m.lessons.length,0);
   updateProgress(total);
@@ -2157,14 +607,16 @@ function formatP(p) {
   if (!p) return '—';
   if (p>=1000) return p.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2});
   if (p>=1) return p.toFixed(4);
-  return p.toFixed(6);
+  if (p>=0.01) return p.toFixed(6);
+  return p.toFixed(8);
 }
 
 function openBot() { tg.openTelegramLink(BOT); }
-function openPremium() { tg.openTelegramLink(`${BOT}`); }
+function openPremium() { tg.openTelegramLink(`${BOT}?start=premium`); }
 
 function copyRef() {
   const text = document.getElementById('refLink').textContent;
+  if (text === t('noProfile')) return;
   navigator.clipboard.writeText(text).then(()=>{
     tg.showAlert(t('copied'));
   }).catch(()=>{
